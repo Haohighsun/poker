@@ -138,11 +138,27 @@ td.hi{color:var(--text);}
 /* MOOD */
 .mood-ai-layout{display:grid;grid-template-columns:190px 1fr;gap:18px;min-height:400px;}
 .tl-sidebar{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:14px;overflow-y:auto;max-height:calc(100vh - 160px);}
-.ts-year{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);padding:7px 0 3px;cursor:default;}
-.ts-month{padding:6px 10px;border-radius:7px;font-size:13px;color:var(--text2);cursor:pointer;transition:all .15s;display:flex;justify-content:space-between;align-items:center;}
+.ts-year{display:flex;align-items:center;justify-content:space-between;padding:7px 4px 3px;cursor:pointer;font-size:12px;font-weight:500;color:var(--text2);border-radius:7px;transition:all .15s;}
+.ts-year:hover{color:var(--text);background:var(--bg3);}
+.ts-year.open{color:var(--gold);}
+.ts-year-arrow{font-size:10px;transition:transform .2s;color:var(--text3);}
+.ts-year.open .ts-year-arrow{transform:rotate(90deg);color:var(--gold);}
+.ts-months{overflow:hidden;max-height:0;transition:max-height .25s ease;}
+.ts-months.open{max-height:400px;}
+.ts-month{padding:5px 10px 5px 16px;border-radius:7px;font-size:13px;color:var(--text2);cursor:pointer;transition:all .15s;display:flex;justify-content:space-between;align-items:center;}
 .ts-month:hover{background:var(--bg3);color:var(--text);}
 .ts-month.active{background:var(--gold-dim);color:var(--gold2);}
 .ts-count{font-size:10px;color:var(--text3);}
+.ts-articles{overflow:hidden;max-height:0;transition:max-height .3s ease;}
+.ts-articles.open{max-height:600px;}
+.ts-article{padding:4px 10px 4px 28px;font-size:12px;color:var(--text3);cursor:pointer;border-radius:5px;transition:all .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ts-article:hover{background:var(--bg3);color:var(--text2);}
+.ts-article.active{color:var(--gold);background:rgba(201,168,76,0.07);}
+.mood-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.mood-nav-btn{display:flex;align-items:center;gap:6px;padding:7px 14px;border:1px solid var(--border);border-radius:var(--r);background:none;color:var(--text2);font-family:'Outfit',sans-serif;font-size:12px;cursor:pointer;transition:all .15s;}
+.mood-nav-btn:hover:not(:disabled){border-color:var(--gold);color:var(--gold);background:var(--gold-dim);}
+.mood-nav-btn:disabled{opacity:.3;cursor:default;}
+.mood-nav-info{font-size:12px;color:var(--text3);}
 .mood-area{display:flex;flex-direction:column;gap:14px;}
 .entry-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:18px;}
 .entry-card:hover{border-color:var(--border2);}
@@ -345,7 +361,14 @@ td.hi{color:var(--text);}
   <div class="content">
     <div class="mood-ai-layout">
       <div class="tl-sidebar" id="mood-tl"></div>
-      <div class="mood-area" id="mood-area"><div style="color:var(--text3);font-size:13px;text-align:center;padding:48px 0;">選擇左側月份查看紀錄</div></div>
+      <div style="display:flex;flex-direction:column;min-width:0;">
+        <div class="mood-nav" id="mood-nav" style="display:none;">
+          <button class="mood-nav-btn" id="mood-prev" onclick="navMood(-1)">← 上一篇</button>
+          <span class="mood-nav-info" id="mood-nav-info"></span>
+          <button class="mood-nav-btn" id="mood-next" onclick="navMood(1)">下一篇 →</button>
+        </div>
+        <div class="mood-area" id="mood-area"><div style="color:var(--text3);font-size:13px;text-align:center;padding:48px 0;">選擇左側月份查看紀錄</div></div>
+      </div>
     </div>
   </div>
 </div>
@@ -569,11 +592,68 @@ function drawLine(canvas,data){const dpr=window.devicePixelRatio||1,W=canvas.off
 function drawBar(canvas,data){const dpr=window.devicePixelRatio||1,W=canvas.offsetWidth,H=canvas.getAttribute('height')*1;canvas.width=W*dpr;canvas.height=H*dpr;const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);const pad={t:20,r:14,b:34,l:52};const cW=W-pad.l-pad.r,cH=H-pad.t-pad.b;const vals=data.map(s=>s.pnl),labels=data.map(s=>s.date.slice(5));const maxA=Math.max(...vals.map(Math.abs),1);const z=pad.t+cH/2;[0,.25,.5,.75,1].forEach(t=>{const y=pad.t+t*cH;ctx.strokeStyle='rgba(255,255,255,0.05)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+cW,y);ctx.stroke();const v=maxA-t*2*maxA;ctx.fillStyle='rgba(90,84,72,0.8)';ctx.font='10px DM Mono,monospace';ctx.textAlign='right';ctx.fillText((v>=0?'+':'')+Math.round(v),pad.l-4,y+4);});ctx.strokeStyle='rgba(255,255,255,0.15)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.l,z);ctx.lineTo(pad.l+cW,z);ctx.stroke();const bW=Math.max(4,Math.min(26,cW/vals.length-4)),sp2=cW/vals.length;vals.forEach((v,i)=>{const x=pad.l+i*sp2+sp2/2-bW/2;const bH=Math.max(2,Math.abs(v)/maxA*(cH/2-4));const y=v>=0?z-bH:z;const col=v>=0?'#2ecc71':'#e74c3c';const r=Math.min(3,bW/2);ctx.beginPath();if(v>=0){ctx.moveTo(x+r,y);ctx.lineTo(x+bW-r,y);ctx.arcTo(x+bW,y,x+bW,y+r,r);ctx.lineTo(x+bW,y+bH);ctx.lineTo(x,y+bH);ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);}else{ctx.moveTo(x,y);ctx.lineTo(x+bW,y);ctx.lineTo(x+bW,y+bH-r);ctx.arcTo(x+bW,y+bH,x+bW-r,y+bH,r);ctx.lineTo(x+r,y+bH);ctx.arcTo(x,y+bH,x,y+bH-r,r);ctx.lineTo(x,y);}ctx.closePath();ctx.fillStyle=col+'cc';ctx.fill();});const step=Math.ceil(labels.length/8);ctx.fillStyle='rgba(90,84,72,0.9)';ctx.font='10px Outfit,sans-serif';ctx.textAlign='center';labels.forEach((l,i)=>{if(i%step===0||i===labels.length-1)ctx.fillText(l,pad.l+i*sp2+sp2/2,H-pad.b+13);});}
 function openMoodM(){selMoodV=null;document.querySelectorAll('.mib').forEach(b=>b.classList.remove('sel'));document.getElementById('mf-d').value=today();document.getElementById('mf-t').value='mood';document.getElementById('mf-title').value='';document.getElementById('mf-content').value='';document.getElementById('moodm').classList.add('open');}
 function selM(btn){document.querySelectorAll('.mib').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');selMoodV=btn.dataset.mood;}
-async function saveMood(){const m={id:Date.now(),date:document.getElementById('mf-d').value||today(),type:document.getElementById('mf-t').value,mood:selMoodV,title:document.getElementById('mf-title').value,content:document.getElementById('mf-content').value};await sbUpsert('moods',m);moods.unshift(m);closeM('moodm');renderMoodTL();if(moodMonthF)renderMoodContent(moodMonthF);}
-function renderMoodTL(){const byY={};moods.forEach(m=>{const y=m.date.slice(0,4),mo=m.date.slice(0,7);if(!byY[y])byY[y]={};if(!byY[y][mo])byY[y][mo]=0;byY[y][mo]++;});const MN=['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];let html='';Object.keys(byY).sort().reverse().forEach(y=>{html+=`<div class="ts-year">── ${y} ──</div>`;['01','02','03','04','05','06','07','08','09','10','11','12'].forEach((m,i)=>{const key=y+'-'+m;const cnt=byY[y][key]||0;if(cnt>0)html+=`<div class="ts-month${moodMonthF===key?' active':''}" onclick="filterMoodM('${key}')">${MN[i]}<span class="ts-count">${cnt}</span></div>`;});});if(!html)html='<div style="color:var(--text3);font-size:12px;text-align:center;padding:18px;">尚無紀錄</div>';document.getElementById('mood-tl').innerHTML=html;}
-function filterMoodM(key){moodMonthF=key;renderMoodTL();renderMoodContent(key);}
-function renderMoodContent(key){const items=moods.filter(m=>m.date.slice(0,7)===key).sort((a,b)=>b.date.localeCompare(a.date));const area=document.getElementById('mood-area');if(!items.length){area.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:48px 0;">此月份尚無紀錄</div>';return;}const mE={great:'😊',ok:'😐',tired:'😴',tilt:'😤',bad:'😞'};area.innerHTML=items.map(m=>`<div class="entry-card"><div class="entry-meta"><span class="entry-date">${m.date}</span>${m.mood?`<span>${mE[m.mood]}</span>`:''}<span class="entry-badge ${m.type}">${m.type==='mood'?'心情日誌':'AI 複盤'}</span><button class="act-btn" onclick="delMood('${m.id}')" style="margin-left:auto;">✕</button></div>${m.title?`<div style="font-size:14px;font-weight:500;margin-bottom:7px;">${m.title}</div>`:''}<div class="entry-text">${m.content||''}</div></div>`).join('');}
-async function delMood(id){if(!confirm('確定刪除？'))return;await sbDel('moods',id);moods=moods.filter(m=>m.id!=id);renderMoodTL();if(moodMonthF)renderMoodContent(moodMonthF);}
+async function saveMood(){const m={id:Date.now(),date:document.getElementById('mf-d').value||today(),type:document.getElementById('mf-t').value,mood:selMoodV,title:document.getElementById('mf-title').value,content:document.getElementById('mf-content').value};await sbUpsert('moods',m);moods.unshift(m);closeM('moodm');const mo=m.date.slice(0,7);moodOpenYear=m.date.slice(0,4);moodOpenMonth=mo;const items=moods.filter(x=>x.date.slice(0,7)===mo).sort((a,b)=>b.date.localeCompare(a.date));moodArticleList=items;moodArticleIdx=0;renderMoodTL();renderSingleMood(0);}
+let moodOpenYear=null,moodOpenMonth=null,moodArticleIdx=0,moodArticleList=[];
+function renderMoodTL(){
+  const byY={};
+  moods.forEach(m=>{const y=m.date.slice(0,4),mo=m.date.slice(0,7);if(!byY[y])byY[y]={};if(!byY[y][mo])byY[y][mo]=[];byY[y][mo].push(m);});
+  const MN=['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
+  const mE={great:'😊',ok:'😐',tired:'😴',tilt:'😤',bad:'😞'};
+  let html='';
+  Object.keys(byY).sort().reverse().forEach(y=>{
+    const isYOpen=moodOpenYear===y;
+    html+=`<div class="ts-year${isYOpen?' open':''}" onclick="toggleYear('${y}')"><span>▶ ${y} 年</span><span class="ts-year-arrow">›</span></div>`;
+    html+=`<div class="ts-months${isYOpen?' open':''}" id="tsy-${y}">`;
+    ['01','02','03','04','05','06','07','08','09','10','11','12'].forEach((m,i)=>{
+      const key=y+'-'+m;const items=byY[y][key]||[];if(!items.length)return;
+      const isMOpen=moodOpenMonth===key;
+      html+=`<div class="ts-month${isMOpen?' active':''}" onclick="toggleMonth('${key}')">${MN[i]}<span class="ts-count">${items.length}</span></div>`;
+      html+=`<div class="ts-articles${isMOpen?' open':''}" id="tsm-${key}">`;
+      items.sort((a,b)=>b.date.localeCompare(a.date)).forEach((item,idx)=>{
+        const isActive=moodArticleList[moodArticleIdx]&&moodArticleList[moodArticleIdx].id===item.id;
+        const label=(item.title||item.date)+' '+(item.mood?mE[item.mood]:'');
+        html+=`<div class="ts-article${isActive?' active':''}" onclick="showMoodArticle('${key}',${idx})" title="${label}">${label}</div>`;
+      });
+      html+='</div>';
+    });
+    html+='</div>';
+  });
+  if(!html)html='<div style="color:var(--text3);font-size:12px;text-align:center;padding:18px;">尚無紀錄</div>';
+  document.getElementById('mood-tl').innerHTML=html;
+}
+function toggleYear(y){moodOpenYear=moodOpenYear===y?null:y;if(moodOpenYear!==y)moodOpenMonth=null;renderMoodTL();}
+function toggleMonth(key){
+  const y=key.slice(0,4);moodOpenYear=y;
+  if(moodOpenMonth===key){moodOpenMonth=null;renderMoodTL();return;}
+  moodOpenMonth=key;
+  const items=moods.filter(m=>m.date.slice(0,7)===key).sort((a,b)=>b.date.localeCompare(a.date));
+  moodArticleList=items;moodArticleIdx=0;
+  renderMoodTL();
+  if(items.length)renderSingleMood(0);
+}
+function showMoodArticle(key,idx){
+  const items=moods.filter(m=>m.date.slice(0,7)===key).sort((a,b)=>b.date.localeCompare(a.date));
+  moodArticleList=items;moodArticleIdx=idx;moodOpenMonth=key;moodOpenYear=key.slice(0,4);
+  renderMoodTL();renderSingleMood(idx);
+}
+function renderSingleMood(idx){
+  const m=moodArticleList[idx];if(!m)return;
+  const mE={great:'😊',ok:'😐',tired:'😴',tilt:'😤',bad:'😞'};
+  const area=document.getElementById('mood-area');
+  area.innerHTML=`<div class="entry-card"><div class="entry-meta"><span class="entry-date">${m.date}</span>${m.mood?`<span style="font-size:18px;">${mE[m.mood]}</span>`:''}<span class="entry-badge ${m.type}">${m.type==='mood'?'心情日誌':'AI 複盤'}</span><button class="act-btn" onclick="delMood('${m.id}')" style="margin-left:auto;">✕</button></div>${m.title?`<div style="font-size:15px;font-weight:500;margin-bottom:10px;color:var(--text);">${m.title}</div>`:''}<div class="entry-text">${m.content||''}</div></div>`;
+  const nav=document.getElementById('mood-nav');nav.style.display='flex';
+  document.getElementById('mood-prev').disabled=idx>=moodArticleList.length-1;
+  document.getElementById('mood-next').disabled=idx<=0;
+  document.getElementById('mood-nav-info').textContent=(idx+1)+' / '+moodArticleList.length;
+}
+function navMood(dir){
+  const newIdx=moodArticleIdx-dir;
+  if(newIdx<0||newIdx>=moodArticleList.length)return;
+  moodArticleIdx=newIdx;renderMoodTL();renderSingleMood(newIdx);
+}
+function filterMoodM(key){moodOpenMonth=key;moodOpenYear=key.slice(0,4);toggleMonth(key);}
+function renderMoodContent(key){toggleMonth(key);}
+async function delMood(id){if(!confirm('確定刪除？'))return;await sbDel('moods',id);moods=moods.filter(m=>m.id!=id);moodArticleList=moodArticleList.filter(m=>m.id!=id);if(moodArticleIdx>=moodArticleList.length)moodArticleIdx=Math.max(0,moodArticleList.length-1);renderMoodTL();if(moodArticleList.length)renderSingleMood(moodArticleIdx);else{document.getElementById('mood-area').innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:48px 0;">此月份尚無紀錄</div>';document.getElementById('mood-nav').style.display='none';}}
 function openLibM(){const sel=document.getElementById('lf-cat');sel.innerHTML=libCats.map(c=>`<option>${c}</option>`).join('');document.getElementById('lf-title').value='';document.getElementById('lf-url').value='';document.getElementById('lf-content').value='';document.getElementById('libm').classList.add('open');}
 async function saveLib(){const item={id:Date.now(),title:document.getElementById('lf-title').value,cat:document.getElementById('lf-cat').value,url:document.getElementById('lf-url').value,content:document.getElementById('lf-content').value,date:today()};await sbUpsert('libs',item);libs.unshift(item);closeM('libm');renderLibCats();renderLibItems(libCatF);}
 function renderLibCats(){const sb=document.getElementById('lib-cats-sidebar');let html=`<button class="lib-cat-btn${libCatF==='all'?' active':''}" onclick="filterLib('all')">全部 (${libs.length})</button>`;libCats.forEach(c=>{const cnt=libs.filter(x=>x.cat===c).length;html+=`<button class="lib-cat-btn${libCatF===c?' active':''}" onclick="filterLib('${c}')">${c} (${cnt})</button>`;});html+=`<button class="lib-cat-add" onclick="addLibCat()">+ 新增分類</button>`;sb.innerHTML=html;renderLibItems(libCatF);}
