@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>浩EV撲克</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d0d0d;--bg2:#141414;--bg3:#1c1c1c;--bg4:#242424;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.14);--gold:#c9a84c;--gold2:#e8c97a;--gold-dim:rgba(201,168,76,0.13);--green:#2ecc71;--red:#e74c3c;--blue:#3b9eda;--purple:#9b6fd4;--text:#f0ece4;--text2:#a09880;--text3:#5a5448;--r:10px;--rl:16px;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;font-weight:300;min-height:100vh;overflow-x:hidden;}
+.app{display:flex;min-height:100vh;}
+.sidebar{width:220px;min-height:100vh;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;}
+.logo{padding:28px 20px 22px;border-bottom:1px solid var(--border);}
+.logo-suits{font-size:18px;letter-spacing:4px;color:var(--gold);margin-bottom:5px;}
+.logo-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;letter-spacing:1px;}
+.logo-sub{font-size:10px;color:var(--text3);letter-spacing:2px;text-transform:uppercase;margin-top:2px;}
+nav{padding:16px 10px;flex:1;overflow-y:auto;}
+.nav-sec{font-size:10px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;padding:0 10px;margin:16px 0 5px;}
+.nav-sec:first-child{margin-top:0;}
+.nb{display:flex;align-items:center;gap:9px;width:100%;padding:9px 12px;border:none;background:none;color:var(--text2);font-family:'Outfit',sans-serif;font-size:13px;font-weight:400;border-radius:var(--r);cursor:pointer;text-align:left;transition:all .15s;}
+.nb:hover{background:var(--bg3);color:var(--text);}
+.nb.active{background:var(--gold-dim);color:var(--gold2);border:1px solid rgba(201,168,76,0.18);}
+.ni{font-size:15px;width:18px;text-align:center;}
+.sb-stats{padding:14px 16px;border-top:1px solid var(--border);}
+.sb-stat{display:flex;justify-content:space-between;padding:4px 0;font-size:12px;}
+.sb-stat-l{color:var(--text3);}
+.sb-stat-v{font-family:'DM Mono',monospace;font-size:12px;font-weight:500;}
+.main{margin-left:220px;flex:1;min-height:100vh;display:flex;flex-direction:column;}
+.topbar{padding:20px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg);position:sticky;top:0;z-index:50;}
+.page-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;}
+.page-title span{color:var(--gold);}
+.add-btn{display:flex;align-items:center;gap:7px;padding:9px 18px;background:var(--gold);color:#1a1200;border:none;border-radius:var(--r);font-family:'Outfit',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:background .15s;}
+.add-btn:hover{background:var(--gold2);}
+.content{padding:26px 32px;flex:1;}
+.page{display:none;}.page.active{display:block;}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:18px 20px;}
+.sc-label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-bottom:7px;}
+.sc-val{font-family:'DM Mono',monospace;font-size:24px;font-weight:500;}
+.sc-val.pos{color:var(--green);}.sc-val.neg{color:var(--red);}.sc-val.gold{color:var(--gold);}
+.sc-sub{font-size:11px;color:var(--text3);margin-top:3px;}
+.table-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;margin-bottom:18px;}
+.table-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.table-title{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;}
+.filter-row{display:flex;gap:6px;}
+.fb{padding:4px 12px;border:1px solid var(--border);border-radius:20px;background:none;color:var(--text2);font-size:11px;font-family:'Outfit',sans-serif;cursor:pointer;transition:all .15s;}
+.fb:hover,.fb.active{border-color:var(--gold);color:var(--gold);background:var(--gold-dim);}
+table{width:100%;border-collapse:collapse;}
+thead th{text-align:left;padding:10px 16px;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border);font-weight:400;}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s;cursor:pointer;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:var(--bg3);}
+tbody td{padding:11px 16px;font-size:13px;color:var(--text2);}
+td.hi{color:var(--text);}
+.badge{display:inline-flex;padding:2px 9px;border-radius:20px;font-size:10px;}
+.badge.t{background:rgba(201,168,76,.1);color:var(--gold);border:1px solid rgba(201,168,76,.2);}
+.badge.c{background:rgba(46,204,113,.1);color:var(--green);border:1px solid rgba(46,204,113,.2);}
+.ppos{color:var(--green);font-family:'DM Mono',monospace;}
+.pneg{color:var(--red);font-family:'DM Mono',monospace;}
+.p0{color:var(--text3);font-family:'DM Mono',monospace;}
+.act-btn{background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:3px 5px;border-radius:5px;transition:all .15s;}
+.act-btn:hover{background:var(--bg4);color:var(--text);}
+.empty-row td{text-align:center;padding:40px;color:var(--text3);font-size:13px;}
+.empty-icon{font-size:26px;display:block;margin-bottom:6px;opacity:.25;}
+.chart-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:16px 20px;margin-bottom:16px;}
+.chart-label{font-size:10px;color:var(--text3);margin-bottom:10px;letter-spacing:1px;text-transform:uppercase;}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.overlay.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--rl);width:95%;max-width:580px;max-height:90vh;overflow-y:auto;animation:mIn .2s ease;}
+@keyframes mIn{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+.mhead{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg2);z-index:10;}
+.mhead-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;}
+.mc{background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;padding:3px 7px;border-radius:5px;transition:all .15s;line-height:1;}
+.mc:hover{background:var(--bg3);color:var(--text);}
+.mbody{padding:22px 24px;}
+.mfoot{padding:0 24px 24px;display:flex;gap:10px;}
+.btn-ok{flex:1;padding:11px;background:var(--gold);color:#1a1200;border:none;border-radius:var(--r);font-family:'Outfit',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:background .15s;}
+.btn-ok:hover{background:var(--gold2);}
+.btn-cancel{padding:11px 20px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text2);font-family:'Outfit',sans-serif;font-size:14px;cursor:pointer;transition:all .15s;}
+.btn-cancel:hover{border-color:var(--border2);color:var(--text);}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.fg.s{grid-template-columns:1fr;}.fg.t{grid-template-columns:1fr 1fr 1fr;}
+.field{display:flex;flex-direction:column;gap:5px;}
+.field label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);}
+.field input,.field select,.field textarea{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:9px 12px;color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;outline:none;transition:border-color .15s;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:rgba(201,168,76,.4);}
+.field select option{background:var(--bg3);}
+.field textarea{resize:vertical;min-height:72px;line-height:1.6;}
+.pnl-prev{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:11px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.pnl-prev-l{font-size:12px;color:var(--text3);}
+.pnl-prev-v{font-family:'DM Mono',monospace;font-size:20px;font-weight:500;}
+.divider{border:none;border-top:1px solid var(--border);margin:16px 0;}
+.slbl{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:12px;}
+.type-toggle{display:flex;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px;}
+.type-opt{flex:1;padding:9px;text-align:center;cursor:pointer;font-size:13px;color:var(--text3);border:none;background:none;font-family:'Outfit',sans-serif;transition:all .15s;}
+.type-opt.active{background:var(--gold-dim);color:var(--gold);font-weight:500;}
+.card-group{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px;}
+.card-slot{width:46px;height:64px;background:var(--bg3);border:1px dashed var(--border2);border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-direction:column;transition:all .15s;flex-shrink:0;}
+.card-slot:hover{border-color:var(--gold);}
+.card-slot.filled{border-style:solid;border-color:var(--border2);}
+.card-slot .cr{font-family:'DM Mono',monospace;font-size:13px;font-weight:500;line-height:1.1;}
+.card-slot .cs{font-size:14px;line-height:1;}
+.card-slot .cp{font-size:20px;color:var(--text3);}
+.card-slot.red .cr,.card-slot.red .cs{color:#e74c3c;}
+.card-slot.black .cr,.card-slot.black .cs{color:var(--text);}
+.picker-popup{position:fixed;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--rl);padding:14px;z-index:1000;width:248px;box-shadow:0 20px 60px rgba(0,0,0,.6);display:none;}
+.picker-popup.open{display:block;}
+.picker-ranks{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:9px;}
+.pr{width:29px;height:29px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--text2);font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .12s;}
+.pr:hover,.pr.sel{background:var(--gold);color:#1a1200;border-color:var(--gold);}
+.picker-suits{display:flex;gap:5px;margin-bottom:9px;}
+.ps{flex:1;height:34px;background:var(--bg3);border:1px solid var(--border);border-radius:7px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .12s;}
+.ps:hover,.ps.sel{border-color:var(--border2);background:var(--bg4);}
+.picker-acts{display:flex;gap:6px;}
+.pcf{flex:1;padding:7px;background:var(--gold);color:#1a1200;border:none;border-radius:var(--r);font-family:'Outfit',sans-serif;font-size:12px;font-weight:500;cursor:pointer;}
+.pcc{padding:7px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--text3);font-family:'Outfit',sans-serif;font-size:12px;cursor:pointer;}
+/* HOME */
+.home-hero{text-align:center;padding:44px 20px 32px;}
+.hero-suits{font-size:30px;letter-spacing:8px;color:var(--gold);opacity:.55;margin-bottom:14px;}
+.hero-title{font-family:'Cormorant Garamond',serif;font-size:46px;font-weight:700;letter-spacing:1px;margin-bottom:7px;}
+.hero-sub{font-size:14px;color:var(--text2);}
+.home-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
+.home-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:22px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
+.home-card:hover{border-color:var(--border2);transform:translateY(-2px);}
+.hc-icon{font-size:26px;margin-bottom:12px;display:block;}
+.hc-title{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600;margin-bottom:5px;}
+.hc-sub{font-size:12px;color:var(--text2);line-height:1.6;}
+.hc-arrow{position:absolute;bottom:16px;right:18px;font-size:16px;color:var(--text3);transition:all .2s;}
+.home-card:hover .hc-arrow{color:var(--gold);transform:translateX(3px);}
+.home-card.gc{border-color:rgba(201,168,76,.18);background:linear-gradient(135deg,var(--bg2) 0%,rgba(201,168,76,.05) 100%);}
+.home-quick{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:18px 22px;display:flex;align-items:center;justify-content:space-between;gap:14px;}
+.hq-label{font-size:13px;color:var(--text2);}
+.hq-label strong{color:var(--text);}
+.hq-btns{display:flex;gap:9px;flex-wrap:wrap;}
+.hq-btn{padding:8px 14px;border:1px solid var(--border);border-radius:var(--r);background:none;color:var(--text2);font-family:'Outfit',sans-serif;font-size:12px;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.hq-btn:hover{border-color:var(--gold);color:var(--gold);background:var(--gold-dim);}
+/* MOOD */
+.mood-ai-layout{display:grid;grid-template-columns:190px 1fr;gap:18px;min-height:400px;}
+.tl-sidebar{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:14px;overflow-y:auto;max-height:calc(100vh - 160px);}
+.ts-year{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);padding:7px 0 3px;cursor:default;}
+.ts-month{padding:6px 10px;border-radius:7px;font-size:13px;color:var(--text2);cursor:pointer;transition:all .15s;display:flex;justify-content:space-between;align-items:center;}
+.ts-month:hover{background:var(--bg3);color:var(--text);}
+.ts-month.active{background:var(--gold-dim);color:var(--gold2);}
+.ts-count{font-size:10px;color:var(--text3);}
+.mood-area{display:flex;flex-direction:column;gap:14px;}
+.entry-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:18px;}
+.entry-card:hover{border-color:var(--border2);}
+.entry-meta{display:flex;align-items:center;gap:9px;margin-bottom:9px;flex-wrap:wrap;}
+.entry-date{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;}
+.entry-badge{font-size:10px;padding:2px 8px;border-radius:20px;border:1px solid var(--border);color:var(--text2);}
+.entry-badge.mood{color:var(--purple);border-color:rgba(155,111,212,.3);background:rgba(155,111,212,.1);}
+.entry-badge.ai{color:var(--blue);border-color:rgba(59,158,218,.3);background:rgba(59,158,218,.1);}
+.entry-text{font-size:13px;color:var(--text2);line-height:1.75;white-space:pre-wrap;}
+.mood-icons{display:flex;gap:7px;margin-bottom:12px;}
+.mib{flex:1;padding:7px 3px;border:1px solid var(--border);border-radius:var(--r);background:var(--bg3);font-size:17px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;transition:all .15s;}
+.mib span{font-size:9px;color:var(--text3);font-family:'Outfit',sans-serif;}
+.mib.sel{border-color:var(--border2);background:var(--bg4);}
+/* LIBRARY */
+.lib-layout{display:grid;grid-template-columns:170px 1fr;gap:18px;}
+.lib-cats{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:12px;height:fit-content;}
+.lib-cat-btn{display:block;width:100%;padding:7px 11px;border:none;background:none;color:var(--text2);font-family:'Outfit',sans-serif;font-size:13px;text-align:left;border-radius:7px;cursor:pointer;transition:all .15s;margin-bottom:2px;}
+.lib-cat-btn:hover{background:var(--bg3);color:var(--text);}
+.lib-cat-btn.active{background:var(--gold-dim);color:var(--gold2);}
+.lib-cat-add{display:block;width:100%;padding:6px 11px;border:1px dashed var(--border2);background:none;color:var(--text3);font-family:'Outfit',sans-serif;font-size:11px;text-align:left;border-radius:7px;cursor:pointer;transition:all .15s;margin-top:6px;}
+.lib-cat-add:hover{color:var(--text2);}
+.lib-items{display:flex;flex-direction:column;gap:12px;}
+.lib-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:16px 18px;}
+.lib-item:hover{border-color:var(--border2);}
+.lib-item-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:7px;gap:10px;}
+.lib-item-title{font-size:14px;font-weight:500;color:var(--text);}
+.lib-item-cat{font-size:10px;padding:2px 8px;border-radius:20px;background:var(--gold-dim);color:var(--gold);border:1px solid rgba(201,168,76,.2);white-space:nowrap;}
+.lib-item-body{font-size:13px;color:var(--text2);line-height:1.7;}
+.lib-item-link{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--blue);margin-top:7px;text-decoration:none;opacity:.8;}
+.lib-item-link:hover{opacity:1;}
+.lib-item-foot{display:flex;justify-content:space-between;align-items:center;margin-top:6px;}
+.lib-item-date{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;}
+/* GOALS */
+.goals-layout{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;}
+.goal-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:20px;}
+.goal-card-title{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;margin-bottom:14px;}
+.goal-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);}
+.goal-row:last-child{border-bottom:none;}
+.goal-key{font-size:13px;color:var(--text2);}
+.goal-val{font-family:'DM Mono',monospace;font-size:13px;font-weight:500;}
+.prog-wrap{margin-top:12px;}
+.prog-label{display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:5px;}
+.prog-bar{height:5px;background:var(--bg4);border-radius:3px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:3px;transition:width .4s;}
+.charity-hero{text-align:center;padding:22px;background:linear-gradient(135deg,rgba(201,168,76,.08),rgba(46,204,113,.08));border:1px solid rgba(201,168,76,.15);border-radius:var(--rl);margin-bottom:18px;}
+.charity-big{font-family:'DM Mono',monospace;font-size:36px;font-weight:500;color:var(--gold);margin:8px 0;}
+.charity-lbl{font-size:11px;color:var(--text2);letter-spacing:.5px;}
+.charity-sub{font-size:11px;color:var(--text3);margin-top:3px;}
+.don-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.don-org{font-size:13px;color:var(--text);}
+.don-date{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:2px;}
+.don-amt{font-family:'DM Mono',monospace;font-size:15px;color:var(--green);}
+.det-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px;}
+.det-item{display:flex;flex-direction:column;gap:3px;}
+.det-key{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);}
+.det-val{font-size:13px;color:var(--text);}
+.disp-cards{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px;}
+.dc{width:42px;height:58px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;}
+.dc .dr{font-family:'DM Mono',monospace;font-size:12px;font-weight:500;}
+.dc .ds{font-size:12px;}
+.dc.red .dr,.dc.red .ds{color:#e74c3c;}
+::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:2px;}
+@media(max-width:900px){.sidebar{width:180px;}.main{margin-left:180px;}.stats-row{grid-template-columns:1fr 1fr;}.topbar,.content{padding-left:18px;padding-right:18px;}}
+@media(max-width:640px){
+  .sidebar{width:100%;min-height:auto;position:fixed;top:auto;bottom:0;left:0;right:0;height:56px;flex-direction:row;border-right:none;border-top:1px solid var(--border);z-index:200;}
+  .logo,.sb-stats{display:none;}
+  nav{display:flex;flex-direction:row;align-items:center;justify-content:space-around;padding:0;width:100%;}
+  .nav-sec{display:none;}
+  .nb{flex:1;flex-direction:column;align-items:center;justify-content:center;padding:4px 2px;border-radius:0;gap:2px;font-size:9px;height:56px;}
+  .ni{font-size:18px;width:auto;}
+  .main{margin-left:0;margin-bottom:56px;}
+  .topbar{padding:12px 14px;}.page-title{font-size:18px;}.content{padding:12px 12px;}
+  .stats-row{grid-template-columns:1fr 1fr;gap:8px;}.sc-val{font-size:17px;}
+  .overlay{align-items:flex-end;}
+  .modal{width:100%;max-width:100%;max-height:93vh;border-radius:var(--rl) var(--rl) 0 0;}
+  .fg{grid-template-columns:1fr !important;}
+  .mood-ai-layout,.lib-layout{grid-template-columns:1fr;}
+  .home-grid{grid-template-columns:1fr;}
+  .goals-layout{grid-template-columns:1fr;}
+  .home-quick{flex-direction:column;align-items:flex-start;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-suits">♠ ♥ ♦ ♣</div>
+    <div class="logo-title">浩<span style="font-size:1.25em;letter-spacing:0;color:var(--gold2);">EV</span>撲克</div>
+    <div class="logo-sub">Poker Journal</div>
+  </div>
+  <nav>
+    <div class="nav-sec">主選單</div>
+    <button class="nb active" onclick="goPage('home',this)"><span class="ni">🏠</span>首頁</button>
+    <div class="nav-sec">牌局</div>
+    <button class="nb" onclick="goPage('sessions',this)"><span class="ni">📋</span>牌局紀錄</button>
+    <button class="nb" onclick="goPage('hands',this)"><span class="ni">🃏</span>手牌紀錄</button>
+    <button class="nb" onclick="goPage('stats',this)"><span class="ni">📊</span>統計分析</button>
+    <div class="nav-sec">日誌</div>
+    <button class="nb" onclick="goPage('mood',this)"><span class="ni">💭</span>心情 & 複盤</button>
+    <div class="nav-sec">資源</div>
+    <button class="nb" onclick="goPage('library',this)"><span class="ni">📚</span>資訊庫</button>
+    <button class="nb" onclick="goPage('goals',this)"><span class="ni">🎯</span>目標 & 慈善</button>
+  </nav>
+  <div class="sb-stats">
+    <div class="sb-stat"><span class="sb-stat-l">總損益</span><span class="sb-stat-v" id="sb-pnl" style="color:var(--text2)">$0</span></div>
+    <div class="sb-stat"><span class="sb-stat-l">牌局數</span><span class="sb-stat-v" id="sb-sc" style="color:var(--text2)">0</span></div>
+    <div class="sb-stat"><span class="sb-stat-l">已捐款</span><span class="sb-stat-v" id="sb-don" style="color:var(--green)">$0</span></div>
+  </div>
+</aside>
+<main class="main">
+
+<!-- HOME -->
+<div id="page-home" class="page active">
+  <div class="topbar"><div class="page-title">歡迎回來 <span>♠</span></div></div>
+  <div class="content">
+    <div class="home-hero">
+      <div class="hero-suits">♠ ♥ ♦ ♣</div>
+      <div class="hero-title">浩<span style="font-size:1.2em;letter-spacing:0;color:var(--gold2);">EV</span>撲克</div>
+      <div class="hero-sub">記錄每一局，成為更好的玩家</div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="sc-label">總損益</div><div class="sc-val" id="h-pnl">$0</div><div class="sc-sub">所有牌局</div></div>
+      <div class="stat-card"><div class="sc-label">本月損益</div><div class="sc-val" id="h-mpnl">$0</div><div class="sc-sub">本月</div></div>
+      <div class="stat-card"><div class="sc-label">總捐款</div><div class="sc-val gold" id="h-don">$0</div><div class="sc-sub">💚 慈善貢獻</div></div>
+      <div class="stat-card"><div class="sc-label">牌局場數</div><div class="sc-val gold" id="h-cnt">0</div><div class="sc-sub">場次</div></div>
+    </div>
+    <div class="home-grid">
+      <div class="home-card gc" onclick="goPage('sessions',document.querySelectorAll('.nb')[1])"><span class="hc-icon">📋</span><div class="hc-title">牌局紀錄</div><div class="hc-sub">記錄買入、結算與損益，追蹤長期表現趨勢。</div><span class="hc-arrow">→</span></div>
+      <div class="home-card" onclick="goPage('hands',document.querySelectorAll('.nb')[2])"><span class="hc-icon">🃏</span><div class="hc-title">手牌紀錄</div><div class="hc-sub">記錄關鍵手牌、公牌面與對手牌，方便複盤。</div><span class="hc-arrow">→</span></div>
+      <div class="home-card" onclick="goPage('stats',document.querySelectorAll('.nb')[3])"><span class="hc-icon">📊</span><div class="hc-title">統計分析</div><div class="hc-sub">折線圖 + 長條圖，視覺化損益曲線與表現。</div><span class="hc-arrow">→</span></div>
+      <div class="home-card" onclick="goPage('mood',document.querySelectorAll('.nb')[4])"><span class="hc-icon">💭</span><div class="hc-title">心情 & 複盤</div><div class="hc-sub">記錄打牌心情、貼上 AI 複盤對話，按年月整理。</div><span class="hc-arrow">→</span></div>
+      <div class="home-card" onclick="goPage('library',document.querySelectorAll('.nb')[5])"><span class="hc-icon">📚</span><div class="hc-title">資訊庫</div><div class="hc-sub">收藏好文章、經典語錄，分類管理撲克知識。</div><span class="hc-arrow">→</span></div>
+      <div class="home-card" onclick="goPage('goals',document.querySelectorAll('.nb')[6])"><span class="hc-icon">🎯</span><div class="hc-title">目標 & 慈善</div><div class="hc-sub">設定每月目標，追蹤慈善捐款，讓贏錢更有意義。</div><span class="hc-arrow">→</span></div>
+    </div>
+    <div class="home-quick">
+      <div class="hq-label">快速記錄 <strong>— 打完牌直接新增</strong></div>
+      <div class="hq-btns">
+        <button class="hq-btn" onclick="openSM()">+ 新增牌局</button>
+        <button class="hq-btn" onclick="openHM()">+ 新增手牌</button>
+        <button class="hq-btn" onclick="openMoodM()">+ 新增日誌</button>
+        <button class="hq-btn" onclick="openDonM()">+ 記錄捐款</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SESSIONS -->
+<div id="page-sessions" class="page">
+  <div class="topbar"><div class="page-title">牌局 <span>紀錄</span></div><button class="add-btn" onclick="openSM()">+ 新增牌局</button></div>
+  <div class="content">
+    <div class="stats-row">
+      <div class="stat-card"><div class="sc-label">總損益</div><div class="sc-val" id="s-pnl">$0</div></div>
+      <div class="stat-card"><div class="sc-label">牌局數</div><div class="sc-val gold" id="s-cnt">0</div></div>
+      <div class="stat-card"><div class="sc-label">最佳一局</div><div class="sc-val pos" id="s-best">$0</div></div>
+      <div class="stat-card"><div class="sc-label">最差一局</div><div class="sc-val neg" id="s-worst">$0</div></div>
+    </div>
+    <div class="chart-wrap"><div class="chart-label">近期損益</div><canvas id="sc-canvas" height="78" style="width:100%;display:block;"></canvas></div>
+    <div class="table-wrap">
+      <div class="table-header"><div class="table-title">所有牌局</div><div class="filter-row"><button class="fb active" onclick="fS('all',this)">全部</button><button class="fb" onclick="fS('tournament',this)">錦標賽</button><button class="fb" onclick="fS('cash',this)">現金局</button></div></div>
+      <table><thead><tr><th>日期</th><th>類型</th><th>買入</th><th>次數</th><th>Cash Out</th><th>損益</th><th>時長</th><th>備註</th><th></th></tr></thead><tbody id="s-tbody"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- HANDS -->
+<div id="page-hands" class="page">
+  <div class="topbar"><div class="page-title">手牌 <span>紀錄</span></div><button class="add-btn" onclick="openHM()">+ 新增手牌</button></div>
+  <div class="content">
+    <div class="table-wrap">
+      <div class="table-header"><div class="table-title">所有手牌</div></div>
+      <table><thead><tr><th>日期</th><th>賽事</th><th>人數</th><th>盲注</th><th>我的手牌</th><th>公牌</th><th>對手牌</th><th>備註</th><th></th></tr></thead><tbody id="h-tbody"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div id="page-stats" class="page">
+  <div class="topbar"><div class="page-title">統計 <span>分析</span></div></div>
+  <div class="content">
+    <div class="stats-row">
+      <div class="stat-card"><div class="sc-label">總損益</div><div class="sc-val" id="st-pnl">$0</div></div>
+      <div class="stat-card"><div class="sc-label">錦標賽</div><div class="sc-val gold" id="st-tc">0 場</div></div>
+      <div class="stat-card"><div class="sc-label">現金局</div><div class="sc-val gold" id="st-cc">0 場</div></div>
+      <div class="stat-card"><div class="sc-label">每小時損益</div><div class="sc-val" id="st-hr">$0</div></div>
+    </div>
+    <div class="stats-row" style="grid-template-columns:1fr 1fr;">
+      <div class="stat-card"><div class="sc-label">錦標賽損益</div><div class="sc-val" id="st-tp">$0</div></div>
+      <div class="stat-card"><div class="sc-label">現金局損益</div><div class="sc-val" id="st-cp">$0</div></div>
+    </div>
+    <div class="chart-wrap"><div class="chart-label">📈 累計損益折線圖（最近 20 局）</div><div id="lc-empty" style="display:none;color:var(--text3);font-size:13px;text-align:center;padding:32px 0;">尚無資料</div><canvas id="line-chart" height="180" style="width:100%;display:block;"></canvas></div>
+    <div class="chart-wrap"><div class="chart-label">📊 每局單場損益長條圖</div><div id="bc-empty" style="display:none;color:var(--text3);font-size:13px;text-align:center;padding:32px 0;">尚無資料</div><canvas id="bar-chart" height="158" style="width:100%;display:block;"></canvas></div>
+  </div>
+</div>
+
+<!-- MOOD -->
+<div id="page-mood" class="page">
+  <div class="topbar"><div class="page-title">心情 <span>& 複盤</span></div><button class="add-btn" onclick="openMoodM()">+ 新增日誌</button></div>
+  <div class="content">
+    <div class="mood-ai-layout">
+      <div class="tl-sidebar" id="mood-tl"></div>
+      <div class="mood-area" id="mood-area"><div style="color:var(--text3);font-size:13px;text-align:center;padding:48px 0;">選擇左側月份查看紀錄</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- LIBRARY -->
+<div id="page-library" class="page">
+  <div class="topbar"><div class="page-title">資訊 <span>庫</span></div><button class="add-btn" onclick="openLibM()">+ 新增資料</button></div>
+  <div class="content">
+    <div class="lib-layout">
+      <div class="lib-cats" id="lib-cats-sidebar"></div>
+      <div class="lib-items" id="lib-items-area"><div style="color:var(--text3);font-size:13px;text-align:center;padding:48px 0;">選擇左側分類</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- GOALS -->
+<div id="page-goals" class="page">
+  <div class="topbar"><div class="page-title">目標 <span>& 慈善</span></div><button class="add-btn" onclick="openGoalM()">設定目標</button></div>
+  <div class="content">
+    <div class="charity-hero">
+      <div class="charity-lbl">💚 累計慈善捐款</div>
+      <div class="charity-big" id="g-don-total">$0</div>
+      <div class="charity-sub">用贏來的錢，做有意義的事</div>
+    </div>
+    <div class="goals-layout">
+      <div class="goal-card">
+        <div class="goal-card-title">📅 本月目標</div>
+        <div class="goal-row"><span class="goal-key">損益目標</span><span class="goal-val" id="g-pt">未設定</span></div>
+        <div class="goal-row"><span class="goal-key">本月實際</span><span class="goal-val" id="g-pa">$0</span></div>
+        <div class="goal-row"><span class="goal-key">場次目標</span><span class="goal-key" id="g-st">未設定</span></div>
+        <div class="goal-row"><span class="goal-key">本月場數</span><span class="goal-val" id="g-sa">0</span></div>
+        <div class="prog-wrap">
+          <div class="prog-label"><span>損益達成率</span><span id="g-pct">—</span></div>
+          <div class="prog-bar"><div class="prog-fill" id="g-prog" style="width:0%;background:var(--green);"></div></div>
+        </div>
+      </div>
+      <div class="goal-card">
+        <div class="goal-card-title">💚 最新捐款</div>
+        <button class="add-btn" style="width:100%;justify-content:center;margin-bottom:12px;" onclick="openDonM()">+ 新增捐款</button>
+        <div id="don-preview"></div>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-header"><div class="table-title">所有捐款紀錄</div></div>
+      <table><thead><tr><th>日期</th><th>組織 / 用途</th><th>金額</th><th>關聯牌局</th><th>備註</th><th></th></tr></thead><tbody id="don-tbody"></tbody></table>
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<!-- SESSION MODAL -->
+<div class="overlay" id="sm">
+  <div class="modal">
+    <div class="mhead"><div class="mhead-title" id="sm-t">新增牌局</div><button class="mc" onclick="closeM('sm')">✕</button></div>
+    <div class="mbody">
+      <div class="slbl">牌局類型</div>
+      <div class="type-toggle" id="stype-toggle"><button class="type-opt active" data-type="tournament" onclick="setST('tournament',this)">🏆 錦標賽</button><button class="type-opt" data-type="cash" onclick="setST('cash',this)">💵 現金局</button></div>
+      <div class="fg"><div class="field"><label>日期</label><input type="date" id="sf-d"></div><div class="field"><label>遊戲時長</label><input type="text" id="sf-h" placeholder="例：3小時30分"></div></div>
+      <div class="fg t"><div class="field"><label>買入 ($)</label><input type="number" id="sf-b" placeholder="0" oninput="calcP()"></div><div class="field"><label>報名次數</label><input type="number" id="sf-e" placeholder="1" value="1" oninput="calcP()"></div><div class="field"><label>Cash Out ($)</label><input type="number" id="sf-c" placeholder="0" oninput="calcP()"></div></div>
+      <div class="pnl-prev"><span class="pnl-prev-l">損益（Cash Out − 買入 × 次數）</span><span class="pnl-prev-v" id="pnl-p">$0</span></div>
+      <div class="fg s"><div class="field"><label>備註</label><textarea id="sf-n" placeholder="比賽感想..."></textarea></div></div>
+    </div>
+    <div class="mfoot"><button class="btn-cancel" onclick="closeM('sm')">取消</button><button class="btn-ok" onclick="saveS()">儲存</button></div>
+  </div>
+</div>
+
+<!-- HAND MODAL -->
+<div class="overlay" id="hm">
+  <div class="modal">
+    <div class="mhead"><div class="mhead-title">新增手牌紀錄</div><button class="mc" onclick="closeM('hm')">✕</button></div>
+    <div class="mbody">
+      <div class="fg"><div class="field"><label>日期</label><input type="date" id="hf-d"></div><div class="field"><label>賽事名稱</label><input type="text" id="hf-e" placeholder="例：週五現金桌"></div></div>
+      <div class="fg"><div class="field"><label>類型</label><select id="hf-t"><option value="tournament">錦標賽</option><option value="cash">現金桌</option></select></div><div class="field"><label>桌上人數</label><input type="number" id="hf-p" placeholder="9" min="2" max="10"></div></div>
+      <div class="fg s"><div class="field"><label>小盲 / 大盲</label><input type="text" id="hf-bl" placeholder="例：500/1000"></div></div>
+      <hr class="divider">
+      <div class="slbl">我的手牌</div>
+      <div class="card-group" id="mc-grp"><div class="card-slot" id="mc-0" onclick="openP('my',0)"><span class="cp">?</span></div><div class="card-slot" id="mc-1" onclick="openP('my',1)"><span class="cp">?</span></div></div>
+      <div class="slbl">公牌面（可選）</div>
+      <div class="card-group" id="cc-grp"><div class="card-slot" id="cc-0" onclick="openP('comm',0)"><span class="cp">?</span></div><div class="card-slot" id="cc-1" onclick="openP('comm',1)"><span class="cp">?</span></div><div class="card-slot" id="cc-2" onclick="openP('comm',2)"><span class="cp">?</span></div><div class="card-slot" id="cc-3" onclick="openP('comm',3)"><span class="cp">?</span></div><div class="card-slot" id="cc-4" onclick="openP('comm',4)"><span class="cp">?</span></div></div>
+      <div class="slbl">對手手牌（可選）</div>
+      <div class="card-group" id="oc-grp"><div class="card-slot" id="oc-0" onclick="openP('opp',0)"><span class="cp">?</span></div><div class="card-slot" id="oc-1" onclick="openP('opp',1)"><span class="cp">?</span></div></div>
+      <hr class="divider">
+      <div class="fg s"><div class="field"><label>備註</label><textarea id="hf-n" placeholder="手牌分析、思路、需要複盤的地方..."></textarea></div></div>
+    </div>
+    <div class="mfoot"><button class="btn-cancel" onclick="closeM('hm')">取消</button><button class="btn-ok" onclick="saveH()">儲存</button></div>
+  </div>
+</div>
+
+<!-- MOOD MODAL -->
+<div class="overlay" id="moodm">
+  <div class="modal">
+    <div class="mhead"><div class="mhead-title">新增日誌</div><button class="mc" onclick="closeM('moodm')">✕</button></div>
+    <div class="mbody">
+      <div class="fg"><div class="field"><label>日期</label><input type="date" id="mf-d"></div><div class="field"><label>類型</label><select id="mf-t"><option value="mood">心情日誌</option><option value="ai">AI 複盤對話</option></select></div></div>
+      <div class="slbl">今天的心情</div>
+      <div class="mood-icons" id="mood-icons"><button class="mib" data-mood="great" onclick="selM(this)">😊<span>狀態佳</span></button><button class="mib" data-mood="ok" onclick="selM(this)">😐<span>普通</span></button><button class="mib" data-mood="tired" onclick="selM(this)">😴<span>疲倦</span></button><button class="mib" data-mood="tilt" onclick="selM(this)">😤<span>傾斜</span></button><button class="mib" data-mood="bad" onclick="selM(this)">😞<span>低落</span></button></div>
+      <div class="fg s"><div class="field"><label>標題（可選）</label><input type="text" id="mf-title" placeholder="這次日誌的主題..."></div></div>
+      <div class="fg s"><div class="field"><label>內容（可直接貼上 AI 對話）</label><textarea id="mf-content" style="min-height:130px;" placeholder="記錄心情、貼上複盤對話、任何想記錄的事..."></textarea></div></div>
+    </div>
+    <div class="mfoot"><button class="btn-cancel" onclick="closeM('moodm')">取消</button><button class="btn-ok" onclick="saveMood()">儲存</button></div>
+  </div>
+</div>
+
+<!-- LIBRARY MODAL -->
+<div class="overlay" id="libm">
+  <div class="modal">
+    <div class="mhead"><div class="mhead-title">新增資料</div><button class="mc" onclick="closeM('libm')">✕</button></div>
+    <div class="mbody">
+      <div class="fg"><div class="field"><label>標題</label><input type="text" id="lf-title" placeholder="文章標題 / 語錄..."></div><div class="field"><label>分類</label><select id="lf-cat"></select></div></div>
+      <div class="fg s"><div class="field"><label>網址（可選）</label><input type="url" id="lf-url" placeholder="https://..."></div></div>
+      <div class="fg s"><div class="field"><label>內容 / 摘要</label><textarea id="lf-content" style="min-height:110px;" placeholder="貼上文章重點、語錄、書摘..."></textarea></div></div>
+    </div>
+    <div class="mfoot"><button class="btn-cancel" onclick="closeM('libm')">取消</button><button class="btn-ok" onclick="saveLib()">儲存</button></div>
+  </div>
+</div>
+
+<!-- GOAL MODAL -->
+<div class="overlay" id="goalm">
+  <div class="modal">
+    <div class="mhead"><div class="mhead-title">設定本月目標</div><button class="mc" onclick="closeM('goalm')">✕</button></div>
+    <div class="mbody">
+      <div class="fg"><div class="field"><label>損益目標 ($)</label><input type="number" id="gf-pnl" placeholder="例：5000"></div><div class="field"><label>場次目標</label><input type="number" id="gf-ses" placeholder="例：10"></div></div>
+    </div>
+    <div class="mfoot"><button class="btn-cancel" onclick="closeM('goalm')">取消</button><button class="btn-ok" onclick="saveGoal()">儲存</button></div>
+  </div>
+</div>
+
+<!-- DONATION MODAL -->
+<div class="overlay" id="donm">
+  <div class="modal">
+    <div class="mhead"><div class="mhead-title">新增捐款紀錄</div><button class="mc" onclick="closeM('donm')">✕</button></div>
+    <div class="mbody">
+      <div class="fg"><div class="field"><label>日期</label><input type="date" id="df-d"></div><div class="field"><label>金額 ($)</label><input type="number" id="df-amt" placeholder="0"></div></div>
+      <div class="fg s"><div class="field"><label>組織 / 用途</label><input type="text" id="df-org" placeholder="例：兒童癌症基金會"></div></div>
+      <div class="fg s"><div class="field"><label>關聯牌局（可選）</label><input type="text" id="df-ses" placeholder="例：2025-01-20 錦標賽"></div></div>
+      <div class="fg s"><div class="field"><label>備註</label><textarea id="df-n" placeholder="捐款原因、感想..."></textarea></div></div>
+    </div>
+    <div class="mfoot"><button class="btn-cancel" onclick="closeM('donm')">取消</button><button class="btn-ok" onclick="saveDon()">儲存</button></div>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="overlay" id="detm">
+  <div class="modal">
+    <div class="mhead"><div class="mhead-title" id="det-title">詳情</div><button class="mc" onclick="closeM('detm')">✕</button></div>
+    <div class="mbody" id="det-body"></div>
+    <div class="mfoot"><button class="btn-cancel" onclick="closeM('detm')">關閉</button></div>
+  </div>
+</div>
+
+<!-- CARD PICKER -->
+<div class="picker-popup" id="card-picker">
+  <div class="picker-ranks" id="picker-ranks"></div>
+  <div class="picker-suits"><button class="ps" data-suit="♠" onclick="pickS(this)">♠</button><button class="ps" style="color:#e74c3c" data-suit="♥" onclick="pickS(this)">♥</button><button class="ps" style="color:#e74c3c" data-suit="♦" onclick="pickS(this)">♦</button><button class="ps" data-suit="♣" onclick="pickS(this)">♣</button></div>
+  <div class="picker-acts"><button class="pcc" onclick="clearCard()">清除</button><button class="pcf" onclick="confirmCard()">確認</button></div>
+</div>
+<div id="pick-back" style="display:none;position:fixed;inset:0;z-index:999;" onclick="closePicker()"></div>
+
+<script>
+const RANKS=['A','K','Q','J','T','9','8','7','6','5','4','3','2'];
+const RED=['♥','♦'];
+const DEF_CATS=['GTO 專區','馬腳專區','心理建設','書籍筆記','經典語錄','其他'];
+let sessions=[],hands=[],moods=[],libs=[],donations=[],goals={},libCats=[...DEF_CATS];
+let sType='tournament',editSId=null;
+let pG=null,pI=null,pR=null,pSu=null,cData={my:{},comm:{},opp:{}};
+let selMoodV=null,libCatF='all',moodMonthF=null;
+const today=()=>new Date().toISOString().split('T')[0];
+const mk=()=>today().slice(0,7);
+const fmt=(n)=>(n>=0?'+$':'-$')+Math.abs(n).toFixed(0);
+function load(){try{sessions=JSON.parse(localStorage.getItem('pj_s')||'[]');hands=JSON.parse(localStorage.getItem('pj_h')||'[]');moods=JSON.parse(localStorage.getItem('pj_m')||'[]');libs=JSON.parse(localStorage.getItem('pj_l')||'[]');donations=JSON.parse(localStorage.getItem('pj_d')||'[]');goals=JSON.parse(localStorage.getItem('pj_g')||'{}');const sc=JSON.parse(localStorage.getItem('pj_cats')||'null');if(sc)libCats=sc;}catch(e){}renderAll();}
+function save(){localStorage.setItem('pj_s',JSON.stringify(sessions));localStorage.setItem('pj_h',JSON.stringify(hands));localStorage.setItem('pj_m',JSON.stringify(moods));localStorage.setItem('pj_l',JSON.stringify(libs));localStorage.setItem('pj_d',JSON.stringify(donations));localStorage.setItem('pj_g',JSON.stringify(goals));localStorage.setItem('pj_cats',JSON.stringify(libCats));}
+function goPage(p,btn){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));document.getElementById('page-'+p).classList.add('active');if(btn)btn.classList.add('active');if(p==='stats')setTimeout(renderStatsCharts,40);if(p==='mood')renderMoodTL();if(p==='library')renderLibCats();if(p==='goals')renderGoals();if(p==='sessions')renderSessions();if(p==='hands')renderHands();if(p==='home')renderHome();}
+function renderAll(){renderHome();renderSessions();renderHands();renderMoodTL();renderLibCats();renderGoals();renderSidebar();}
+function renderSidebar(){const t=sessions.reduce((s,x)=>s+x.pnl,0);const el=document.getElementById('sb-pnl');el.textContent=(t>=0?'+$':'-$')+Math.abs(t).toFixed(0);el.style.color=t>0?'var(--green)':t<0?'var(--red)':'var(--text2)';document.getElementById('sb-sc').textContent=sessions.length;const d=donations.reduce((s,x)=>s+(parseFloat(x.amount)||0),0);document.getElementById('sb-don').textContent='+$'+d.toFixed(0);}
+function renderHome(){const t=sessions.reduce((s,x)=>s+x.pnl,0);const hp=document.getElementById('h-pnl');hp.textContent=(t>=0?'+$':'-$')+Math.abs(t).toFixed(0);hp.className='sc-val '+(t>0?'pos':t<0?'neg':'');const m=today().slice(0,7);const mp=sessions.filter(s=>s.date&&s.date.slice(0,7)===m).reduce((s,x)=>s+x.pnl,0);const hmp=document.getElementById('h-mpnl');hmp.textContent=(mp>=0?'+$':'-$')+Math.abs(mp).toFixed(0);hmp.className='sc-val '+(mp>0?'pos':mp<0?'neg':'');const d=donations.reduce((s,x)=>s+(parseFloat(x.amount)||0),0);document.getElementById('h-don').textContent='+$'+d.toFixed(0);document.getElementById('h-cnt').textContent=sessions.length;}
+let sF='all';
+function fS(t,btn){sF=t;document.querySelectorAll('.fb').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderSessions();}
+function renderSessions(){const filt=sF==='all'?sessions:sessions.filter(s=>s.type===sF);const tb=document.getElementById('s-tbody');if(!filt.length){tb.innerHTML='<tr class="empty-row"><td colspan="9"><span class="empty-icon">♠</span>尚無牌局紀錄</td></tr>';}else{tb.innerHTML=filt.map(s=>{const pc=s.pnl>0?'ppos':s.pnl<0?'pneg':'p0';const ps=(s.pnl>=0?'+':'')+fmt(s.pnl).replace('+','');const badge=s.type==='tournament'?'<span class="badge t">🏆 錦標賽</span>':'<span class="badge c">💵 現金局</span>';return`<tr onclick="showSD('${s.id}')"><td class="hi">${s.date}</td><td>${badge}</td><td>$${s.buyin}</td><td>${s.entries}</td><td>$${s.cashout}</td><td class="${pc}">${(s.pnl>=0?'+':'')}$${Math.abs(s.pnl).toFixed(0)}</td><td>${s.hours||'—'}</td><td style="font-size:11px;color:var(--text3);">${(s.notes||'').slice(0,16)||'—'}</td><td><button class="act-btn" onclick="event.stopPropagation();openSM('${s.id}')">✎</button><button class="act-btn" onclick="event.stopPropagation();delS('${s.id}')">✕</button></td></tr>`;}).join('');}
+const all=sessions,pnls=all.map(x=>x.pnl),tot=all.reduce((s,x)=>s+x.pnl,0);
+const sp=document.getElementById('s-pnl');sp.textContent=(tot>=0?'+':'')+fmt(tot).replace('+','');sp.className='sc-val '+(tot>0?'pos':tot<0?'neg':'');
+document.getElementById('s-cnt').textContent=all.length;
+document.getElementById('s-best').textContent=pnls.length?'+$'+Math.max(...pnls).toFixed(0):'$0';
+document.getElementById('s-worst').textContent=pnls.length?'-$'+Math.abs(Math.min(...pnls)).toFixed(0):'$0';
+drawMiniBar('sc-canvas',[...sessions].reverse().slice(-10));}
+function drawMiniBar(id,data){const c=document.getElementById(id);if(!c)return;const dpr=window.devicePixelRatio||1,W=c.offsetWidth,H=c.getAttribute('height')*1;c.width=W*dpr;c.height=H*dpr;const ctx=c.getContext('2d');ctx.scale(dpr,dpr);if(!data.length){ctx.fillStyle='rgba(90,84,72,0.4)';ctx.font='11px Outfit,sans-serif';ctx.textAlign='center';ctx.fillText('尚無資料',W/2,H/2);return;}const pad={t:6,r:6,b:18,l:6};const cW=W-pad.l-pad.r,cH=H-pad.t-pad.b;const maxA=Math.max(...data.map(s=>Math.abs(s.pnl)),1);const bW=Math.max(4,Math.min(22,cW/data.length-4));const sp2=cW/data.length;data.forEach((s,i)=>{const x=pad.l+i*sp2+sp2/2-bW/2;const bH=Math.max(2,Math.abs(s.pnl)/maxA*(cH/2-2));const col=s.pnl>=0?'#2ecc71':'#e74c3c';const y=s.pnl>=0?pad.t+cH/2-bH:pad.t+cH/2;ctx.fillStyle=col+'bb';ctx.beginPath();ctx.roundRect(x,y,bW,bH,2);ctx.fill();});ctx.strokeStyle='rgba(255,255,255,0.1)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.l,pad.t+cH/2);ctx.lineTo(pad.l+cW,pad.t+cH/2);ctx.stroke();}
+function openSM(id){editSId=id||null;document.getElementById('sm-t').textContent=id?'編輯牌局':'新增牌局';if(id){const s=sessions.find(x=>x.id==id);sType=s.type;document.getElementById('sf-d').value=s.date;document.getElementById('sf-b').value=s.buyin;document.getElementById('sf-e').value=s.entries;document.getElementById('sf-c').value=s.cashout;document.getElementById('sf-h').value=s.hours;document.getElementById('sf-n').value=s.notes;document.querySelectorAll('#stype-toggle .type-opt').forEach(b=>b.classList.toggle('active',b.dataset.type===s.type));}else{sType='tournament';document.getElementById('sf-d').value=today();document.getElementById('sf-b').value='';document.getElementById('sf-e').value='1';document.getElementById('sf-c').value='';document.getElementById('sf-h').value='';document.getElementById('sf-n').value='';document.querySelectorAll('#stype-toggle .type-opt').forEach((b,i)=>b.classList.toggle('active',i===0));}calcP();document.getElementById('sm').classList.add('open');}
+function setST(t,btn){sType=t;document.querySelectorAll('#stype-toggle .type-opt').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+function calcP(){const b=parseFloat(document.getElementById('sf-b').value)||0;const e=parseFloat(document.getElementById('sf-e').value)||1;const c=parseFloat(document.getElementById('sf-c').value)||0;const p=c-b*e;const el=document.getElementById('pnl-p');el.textContent=(p>=0?'+':'')+fmt(p).replace('+','');el.style.color=p>0?'var(--green)':p<0?'var(--red)':'var(--text2)';}
+function saveS(){const b=parseFloat(document.getElementById('sf-b').value)||0;const e=parseFloat(document.getElementById('sf-e').value)||1;const c=parseFloat(document.getElementById('sf-c').value)||0;const s={id:editSId||Date.now(),type:sType,date:document.getElementById('sf-d').value||today(),buyin:b,entries:e,cashout:c,pnl:c-b*e,hours:document.getElementById('sf-h').value,notes:document.getElementById('sf-n').value};if(editSId)sessions=sessions.map(x=>x.id==editSId?s:x);else sessions.unshift(s);save();closeM('sm');renderAll();}
+function delS(id){if(!confirm('確定刪除？'))return;sessions=sessions.filter(s=>s.id!=id);save();renderAll();}
+function showSD(id){const s=sessions.find(x=>x.id==id);if(!s)return;const pc=s.pnl>0?'var(--green)':s.pnl<0?'var(--red)':'var(--text2)';document.getElementById('det-title').textContent=s.date+' · '+(s.type==='tournament'?'錦標賽':'現金局');document.getElementById('det-body').innerHTML=`<div class="det-grid"><div class="det-item"><div class="det-key">日期</div><div class="det-val">${s.date}</div></div><div class="det-item"><div class="det-key">類型</div><div class="det-val">${s.type==='tournament'?'🏆 錦標賽':'💵 現金局'}</div></div><div class="det-item"><div class="det-key">買入</div><div class="det-val">$${s.buyin}</div></div><div class="det-item"><div class="det-key">報名次數</div><div class="det-val">${s.entries}次</div></div><div class="det-item"><div class="det-key">Cash Out</div><div class="det-val">$${s.cashout}</div></div><div class="det-item"><div class="det-key">時長</div><div class="det-val">${s.hours||'—'}</div></div></div><div class="pnl-prev" style="margin-bottom:12px;"><span class="pnl-prev-l">損益</span><span class="pnl-prev-v" style="color:${pc};">${(s.pnl>=0?'+':'')}$${Math.abs(s.pnl).toFixed(0)}</span></div>${s.notes?`<div style="font-size:13px;color:var(--text2);line-height:1.7;padding:12px;background:var(--bg3);border-radius:var(--r);border:1px solid var(--border);">${s.notes}</div>`:''}`;document.getElementById('detm').classList.add('open');}
+function renderHands(){const tb=document.getElementById('h-tbody');if(!hands.length){tb.innerHTML='<tr class="empty-row"><td colspan="9"><span class="empty-icon">♥</span>尚無手牌紀錄</td></tr>';return;}tb.innerHTML=hands.map(h=>`<tr onclick="showHD('${h.id}')"><td class="hi">${h.date}</td><td>${h.event||'—'}</td><td>${h.players?h.players+'人':'—'}</td><td style="font-family:'DM Mono',monospace;">${h.blinds||'—'}</td><td>${cStr(h.myCards,2)}</td><td>${cStr(h.commCards,5)}</td><td>${cStr(h.oppCards,2)}</td><td style="font-size:11px;color:var(--text3);">${(h.notes||'').slice(0,14)||'—'}</td><td><button class="act-btn" onclick="event.stopPropagation();delH('${h.id}')">✕</button></td></tr>`).join('');}
+function cStr(cards,n){let p=[];for(let i=0;i<n;i++){const c=cards[i];if(c){const col=RED.includes(c.suit)?'#e74c3c':'var(--text)';p.push(`<span style="font-family:'DM Mono',monospace;color:${col};font-size:12px;">${c.rank}${c.suit}</span>`);}}return p.length?p.join(' '):'<span style="color:var(--text3)">—</span>';}
+function openHM(){cData={my:{},comm:{},opp:{}};document.getElementById('hf-d').value=today();document.getElementById('hf-e').value='';document.getElementById('hf-p').value='';document.getElementById('hf-bl').value='';document.getElementById('hf-n').value='';document.getElementById('hf-t').value='tournament';[['mc',2],['cc',5],['oc',2]].forEach(([pfx,n])=>{for(let i=0;i<n;i++){const el=document.getElementById(pfx+'-'+i);if(el){el.innerHTML='<span class="cp">?</span>';el.className='card-slot';}}});document.getElementById('hm').classList.add('open');}
+function saveH(){const h={id:Date.now(),date:document.getElementById('hf-d').value||today(),event:document.getElementById('hf-e').value,type:document.getElementById('hf-t').value,players:document.getElementById('hf-p').value,blinds:document.getElementById('hf-bl').value,notes:document.getElementById('hf-n').value,myCards:{...cData.my},commCards:{...cData.comm},oppCards:{...cData.opp}};hands.unshift(h);save();closeM('hm');renderHands();}
+function delH(id){if(!confirm('確定刪除？'))return;hands=hands.filter(h=>h.id!=id);save();renderHands();}
+function showHD(id){const h=hands.find(x=>x.id==id);if(!h)return;const mk2=(cards,n)=>{let html='<div class="disp-cards">';for(let i=0;i<n;i++){const c=cards[i];if(c){const cls=RED.includes(c.suit)?'dc red':'dc';html+=`<div class="${cls}"><div class="dr">${c.rank}</div><div class="ds">${c.suit}</div></div>`;}}html+='</div>';return html;};document.getElementById('det-title').textContent=h.date+' · '+(h.event||'手牌紀錄');document.getElementById('det-body').innerHTML=`<div class="det-grid"><div class="det-item"><div class="det-key">日期</div><div class="det-val">${h.date}</div></div><div class="det-item"><div class="det-key">賽事</div><div class="det-val">${h.event||'—'}</div></div><div class="det-item"><div class="det-key">人數</div><div class="det-val">${h.players?h.players+'人':'—'}</div></div><div class="det-item"><div class="det-key">盲注</div><div class="det-val">${h.blinds||'—'}</div></div></div><div style="margin-bottom:10px;"><div class="det-key" style="margin-bottom:5px;">我的手牌</div>${mk2(h.myCards,2)}</div><div style="margin-bottom:10px;"><div class="det-key" style="margin-bottom:5px;">公牌</div>${mk2(h.commCards,5)}</div><div style="margin-bottom:10px;"><div class="det-key" style="margin-bottom:5px;">對手手牌</div>${mk2(h.oppCards,2)}</div>${h.notes?`<div style="font-size:13px;color:var(--text2);line-height:1.7;padding:12px;background:var(--bg3);border-radius:var(--r);margin-top:6px;">${h.notes}</div>`:''}`;document.getElementById('detm').classList.add('open');}
+function renderStatsCharts(){const recent=[...sessions].reverse().slice(-20);const lc=document.getElementById('line-chart'),bc=document.getElementById('bar-chart');if(!recent.length){lc.style.display='none';document.getElementById('lc-empty').style.display='block';bc.style.display='none';document.getElementById('bc-empty').style.display='block';}else{lc.style.display='block';document.getElementById('lc-empty').style.display='none';bc.style.display='block';document.getElementById('bc-empty').style.display='none';drawLine(lc,recent);drawBar(bc,recent);}const tot=sessions.reduce((s,x)=>s+x.pnl,0);const sp=document.getElementById('st-pnl');sp.textContent=(tot>=0?'+':'')+fmt(tot).replace('+','');sp.className='sc-val '+(tot>0?'pos':tot<0?'neg':'');const t=sessions.filter(s=>s.type==='tournament'),cc=sessions.filter(s=>s.type==='cash');document.getElementById('st-tc').textContent=t.length+' 場';document.getElementById('st-cc').textContent=cc.length+' 場';const tp=t.reduce((s,x)=>s+x.pnl,0),cp=cc.reduce((s,x)=>s+x.pnl,0);const te=document.getElementById('st-tp');te.textContent=(tp>=0?'+':'')+fmt(tp).replace('+','');te.className='sc-val '+(tp>0?'pos':tp<0?'neg':'');const ce=document.getElementById('st-cp');ce.textContent=(cp>=0?'+':'')+fmt(cp).replace('+','');ce.className='sc-val '+(cp>0?'pos':cp<0?'neg':'');let hrs=0;sessions.forEach(s=>{const m=s.hours?.match(/(\d+)/g);if(m&&m[0])hrs+=parseFloat(m[0]);});const hr=hrs>0?tot/hrs:0;const he=document.getElementById('st-hr');he.textContent=(hr>=0?'+':'')+fmt(hr).replace('+','');he.className='sc-val '+(hr>0?'pos':hr<0?'neg':'');}
+function drawLine(canvas,data){const dpr=window.devicePixelRatio||1,W=canvas.offsetWidth,H=canvas.getAttribute('height')*1;canvas.width=W*dpr;canvas.height=H*dpr;const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);const pad={t:26,r:18,b:34,l:52};const cW=W-pad.l-pad.r,cH=H-pad.t-pad.b;let cum=0;const pts=data.map(s=>{cum+=s.pnl;return cum;});const labels=data.map(s=>s.date.slice(5));const mn=Math.min(...pts,0),mx=Math.max(...pts,0),rng=mx-mn||1;const tx=i=>pad.l+(i/Math.max(pts.length-1,1))*cW;const ty=v=>pad.t+cH-((v-mn)/rng)*cH;const z=ty(0);for(let i=0;i<=4;i++){const y=pad.t+(i/4)*cH;ctx.strokeStyle='rgba(255,255,255,0.05)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+cW,y);ctx.stroke();const v=mx-(i/4)*rng;ctx.fillStyle='rgba(90,84,72,0.8)';ctx.font='10px DM Mono,monospace';ctx.textAlign='right';ctx.fillText((v>=0?'+':'')+Math.round(v),pad.l-4,y+4);}ctx.strokeStyle='rgba(255,255,255,0.12)';ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(pad.l,z);ctx.lineTo(pad.l+cW,z);ctx.stroke();ctx.setLineDash([]);if(pts.length>1){const g=ctx.createLinearGradient(0,pad.t,0,pad.t+cH);g.addColorStop(0,'rgba(201,168,76,0.2)');g.addColorStop(1,'rgba(201,168,76,0.01)');ctx.beginPath();ctx.moveTo(tx(0),z);pts.forEach((p,i)=>{i===0?ctx.lineTo(tx(i),ty(p)):ctx.bezierCurveTo(tx(i-.5),ty(pts[i-1]),tx(i-.5),ty(p),tx(i),ty(p));});ctx.lineTo(tx(pts.length-1),z);ctx.closePath();ctx.fillStyle=g;ctx.fill();}ctx.strokeStyle='#c9a84c';ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.beginPath();pts.forEach((p,i)=>{if(i===0){ctx.moveTo(tx(i),ty(p));return;}ctx.bezierCurveTo(tx(i-.5),ty(pts[i-1]),tx(i-.5),ty(p),tx(i),ty(p));});ctx.stroke();pts.forEach((p,i)=>{const x=tx(i),y=ty(p);ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fillStyle=p>=0?'#2ecc71':'#e74c3c';ctx.fill();ctx.strokeStyle='#0d0d0d';ctx.lineWidth=1.5;ctx.stroke();});const step=Math.ceil(labels.length/8);ctx.fillStyle='rgba(90,84,72,0.9)';ctx.font='10px Outfit,sans-serif';ctx.textAlign='center';labels.forEach((l,i)=>{if(i%step===0||i===labels.length-1)ctx.fillText(l,tx(i),H-pad.b+13);});}
+function drawBar(canvas,data){const dpr=window.devicePixelRatio||1,W=canvas.offsetWidth,H=canvas.getAttribute('height')*1;canvas.width=W*dpr;canvas.height=H*dpr;const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);const pad={t:20,r:14,b:34,l:52};const cW=W-pad.l-pad.r,cH=H-pad.t-pad.b;const vals=data.map(s=>s.pnl),labels=data.map(s=>s.date.slice(5));const maxA=Math.max(...vals.map(Math.abs),1);const z=pad.t+cH/2;[0,.25,.5,.75,1].forEach(t=>{const y=pad.t+t*cH;ctx.strokeStyle='rgba(255,255,255,0.05)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+cW,y);ctx.stroke();const v=maxA-t*2*maxA;ctx.fillStyle='rgba(90,84,72,0.8)';ctx.font='10px DM Mono,monospace';ctx.textAlign='right';ctx.fillText((v>=0?'+':'')+Math.round(v),pad.l-4,y+4);});ctx.strokeStyle='rgba(255,255,255,0.15)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.l,z);ctx.lineTo(pad.l+cW,z);ctx.stroke();const bW=Math.max(4,Math.min(26,cW/vals.length-4)),sp2=cW/vals.length;vals.forEach((v,i)=>{const x=pad.l+i*sp2+sp2/2-bW/2;const bH=Math.max(2,Math.abs(v)/maxA*(cH/2-4));const y=v>=0?z-bH:z;const col=v>=0?'#2ecc71':'#e74c3c';const r=Math.min(3,bW/2);ctx.beginPath();if(v>=0){ctx.moveTo(x+r,y);ctx.lineTo(x+bW-r,y);ctx.arcTo(x+bW,y,x+bW,y+r,r);ctx.lineTo(x+bW,y+bH);ctx.lineTo(x,y+bH);ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);}else{ctx.moveTo(x,y);ctx.lineTo(x+bW,y);ctx.lineTo(x+bW,y+bH-r);ctx.arcTo(x+bW,y+bH,x+bW-r,y+bH,r);ctx.lineTo(x+r,y+bH);ctx.arcTo(x,y+bH,x,y+bH-r,r);ctx.lineTo(x,y);}ctx.closePath();ctx.fillStyle=col+'cc';ctx.fill();});const step=Math.ceil(labels.length/8);ctx.fillStyle='rgba(90,84,72,0.9)';ctx.font='10px Outfit,sans-serif';ctx.textAlign='center';labels.forEach((l,i)=>{if(i%step===0||i===labels.length-1)ctx.fillText(l,pad.l+i*sp2+sp2/2,H-pad.b+13);});}
+function openMoodM(){selMoodV=null;document.querySelectorAll('.mib').forEach(b=>b.classList.remove('sel'));document.getElementById('mf-d').value=today();document.getElementById('mf-t').value='mood';document.getElementById('mf-title').value='';document.getElementById('mf-content').value='';document.getElementById('moodm').classList.add('open');}
+function selM(btn){document.querySelectorAll('.mib').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');selMoodV=btn.dataset.mood;}
+function saveMood(){const m={id:Date.now(),date:document.getElementById('mf-d').value||today(),type:document.getElementById('mf-t').value,mood:selMoodV,title:document.getElementById('mf-title').value,content:document.getElementById('mf-content').value};moods.unshift(m);save();closeM('moodm');renderMoodTL();if(moodMonthF)renderMoodContent(moodMonthF);}
+function renderMoodTL(){const byY={};moods.forEach(m=>{const y=m.date.slice(0,4),mo=m.date.slice(0,7);if(!byY[y])byY[y]={};if(!byY[y][mo])byY[y][mo]=0;byY[y][mo]++;});const MN=['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];let html='';Object.keys(byY).sort().reverse().forEach(y=>{html+=`<div class="ts-year">── ${y} ──</div>`;['01','02','03','04','05','06','07','08','09','10','11','12'].forEach((m,i)=>{const key=y+'-'+m;const cnt=byY[y][key]||0;if(cnt>0)html+=`<div class="ts-month${moodMonthF===key?' active':''}" onclick="filterMoodM('${key}')">${MN[i]}<span class="ts-count">${cnt}</span></div>`;});});if(!html)html='<div style="color:var(--text3);font-size:12px;text-align:center;padding:18px;">尚無紀錄</div>';document.getElementById('mood-tl').innerHTML=html;}
+function filterMoodM(key){moodMonthF=key;renderMoodTL();renderMoodContent(key);}
+function renderMoodContent(key){const items=moods.filter(m=>m.date.slice(0,7)===key).sort((a,b)=>b.date.localeCompare(a.date));const area=document.getElementById('mood-area');if(!items.length){area.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:48px 0;">此月份尚無紀錄</div>';return;}const mE={great:'😊',ok:'😐',tired:'😴',tilt:'😤',bad:'😞'};area.innerHTML=items.map(m=>`<div class="entry-card"><div class="entry-meta"><span class="entry-date">${m.date}</span>${m.mood?`<span>${mE[m.mood]}</span>`:''}<span class="entry-badge ${m.type}">${m.type==='mood'?'心情日誌':'AI 複盤'}</span><button class="act-btn" onclick="delMood('${m.id}')" style="margin-left:auto;">✕</button></div>${m.title?`<div style="font-size:14px;font-weight:500;margin-bottom:7px;">${m.title}</div>`:''}<div class="entry-text">${m.content||''}</div></div>`).join('');}
+function delMood(id){if(!confirm('確定刪除？'))return;moods=moods.filter(m=>m.id!=id);save();renderMoodTL();if(moodMonthF)renderMoodContent(moodMonthF);}
+function openLibM(){const sel=document.getElementById('lf-cat');sel.innerHTML=libCats.map(c=>`<option>${c}</option>`).join('');document.getElementById('lf-title').value='';document.getElementById('lf-url').value='';document.getElementById('lf-content').value='';document.getElementById('libm').classList.add('open');}
+function saveLib(){const item={id:Date.now(),title:document.getElementById('lf-title').value,cat:document.getElementById('lf-cat').value,url:document.getElementById('lf-url').value,content:document.getElementById('lf-content').value,date:today()};libs.unshift(item);save();closeM('libm');renderLibCats();renderLibItems(libCatF);}
+function renderLibCats(){const sb=document.getElementById('lib-cats-sidebar');let html=`<button class="lib-cat-btn${libCatF==='all'?' active':''}" onclick="filterLib('all')">全部 (${libs.length})</button>`;libCats.forEach(c=>{const cnt=libs.filter(x=>x.cat===c).length;html+=`<button class="lib-cat-btn${libCatF===c?' active':''}" onclick="filterLib('${c}')">${c} (${cnt})</button>`;});html+=`<button class="lib-cat-add" onclick="addLibCat()">+ 新增分類</button>`;sb.innerHTML=html;renderLibItems(libCatF);}
+function filterLib(cat){libCatF=cat;renderLibCats();}
+function addLibCat(){const name=prompt('新分類名稱：');if(name&&name.trim()&&!libCats.includes(name.trim())){libCats.push(name.trim());save();renderLibCats();}}
+function renderLibItems(cat){const items=cat==='all'?libs:libs.filter(x=>x.cat===cat);const area=document.getElementById('lib-items-area');if(!items.length){area.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:48px 0;">此分類尚無資料</div>';return;}area.innerHTML=items.map(item=>`<div class="lib-item"><div class="lib-item-header"><div class="lib-item-title">${item.title||'無標題'}</div><span class="lib-item-cat">${item.cat}</span></div><div class="lib-item-body">${item.content||''}</div>${item.url?`<a class="lib-item-link" href="${item.url}" target="_blank">🔗 開啟連結</a>`:''}<div class="lib-item-foot"><div class="lib-item-date">${item.date}</div><button class="act-btn" onclick="delLib('${item.id}')">✕</button></div></div>`).join('');}
+function delLib(id){if(!confirm('確定刪除？'))return;libs=libs.filter(x=>x.id!=id);save();renderLibCats();}
+function openGoalM(){const g=goals[mk()]||{};document.getElementById('gf-pnl').value=g.pnl||'';document.getElementById('gf-ses').value=g.sessions||'';document.getElementById('goalm').classList.add('open');}
+function saveGoal(){goals[mk()]={pnl:parseFloat(document.getElementById('gf-pnl').value)||0,sessions:parseInt(document.getElementById('gf-ses').value)||0};save();closeM('goalm');renderGoals();}
+function renderGoals(){const g=goals[mk()]||{};const mS=sessions.filter(s=>s.date&&s.date.slice(0,7)===mk());const mP=mS.reduce((s,x)=>s+x.pnl,0);const don=donations.reduce((s,x)=>s+(parseFloat(x.amount)||0),0);document.getElementById('g-don-total').textContent='+$'+don.toFixed(0);document.getElementById('g-pt').textContent=g.pnl?'+$'+g.pnl:'未設定';const ap=document.getElementById('g-pa');ap.textContent=(mP>=0?'+':'')+fmt(mP).replace('+','');ap.style.color=mP>0?'var(--green)':mP<0?'var(--red)':'var(--text2)';document.getElementById('g-st').textContent=g.sessions?g.sessions+' 場':'未設定';document.getElementById('g-sa').textContent=mS.length+' 場';if(g.pnl&&g.pnl>0){const pct=Math.min(100,Math.max(0,mP/g.pnl*100));document.getElementById('g-pct').textContent=pct.toFixed(0)+'%';document.getElementById('g-prog').style.width=pct+'%';document.getElementById('g-prog').style.background=pct>=100?'var(--gold)':mP>=0?'var(--green)':'var(--red)';}else{document.getElementById('g-pct').textContent='—';document.getElementById('g-prog').style.width='0%';}renderDonations();}
+function openDonM(){document.getElementById('df-d').value=today();document.getElementById('df-amt').value='';document.getElementById('df-org').value='';document.getElementById('df-ses').value='';document.getElementById('df-n').value='';document.getElementById('donm').classList.add('open');}
+function saveDon(){const d={id:Date.now(),date:document.getElementById('df-d').value||today(),amount:parseFloat(document.getElementById('df-amt').value)||0,org:document.getElementById('df-org').value,session:document.getElementById('df-ses').value,notes:document.getElementById('df-n').value};donations.unshift(d);save();closeM('donm');renderGoals();renderSidebar();}
+function renderDonations(){const tb=document.getElementById('don-tbody');if(!donations.length){tb.innerHTML='<tr class="empty-row"><td colspan="6"><span class="empty-icon">💚</span>尚無捐款紀錄</td></tr>';document.getElementById('don-preview').innerHTML='<div style="color:var(--text3);font-size:12px;text-align:center;padding:16px 0;">還沒有捐款紀錄</div>';return;}tb.innerHTML=donations.map(d=>`<tr><td class="hi">${d.date}</td><td>${d.org||'—'}</td><td class="ppos">+$${parseFloat(d.amount).toFixed(0)}</td><td style="font-size:11px;color:var(--text3);">${d.session||'—'}</td><td style="font-size:11px;color:var(--text3);">${(d.notes||'').slice(0,18)||'—'}</td><td><button class="act-btn" onclick="delDon('${d.id}')">✕</button></td></tr>`).join('');document.getElementById('don-preview').innerHTML=donations.slice(0,3).map(d=>`<div class="don-item"><div><div class="don-org">${d.org||'慈善捐款'}</div><div class="don-date">${d.date}</div></div><div class="don-amt">+$${parseFloat(d.amount).toFixed(0)}</div></div>`).join('');}
+function delDon(id){if(!confirm('確定刪除？'))return;donations=donations.filter(d=>d.id!=id);save();renderGoals();renderSidebar();}
+function openP(group,idx){pG=group;pI=idx;pR=null;pSu=null;const ex=cData[group][idx];if(ex){pR=ex.rank;pSu=ex.suit;}document.getElementById('picker-ranks').innerHTML=RANKS.map(r=>`<button class="pr${r===pR?' sel':''}" data-rank="${r}" onclick="pickR(this)">${r}</button>`).join('');document.querySelectorAll('#card-picker .ps').forEach(b=>b.classList.toggle('sel',b.dataset.suit===pSu));const pfx=group==='my'?'mc':group==='comm'?'cc':'oc';const slot=document.getElementById(pfx+'-'+idx);const rect=slot.getBoundingClientRect();const picker=document.getElementById('card-picker');picker.style.display='block';let top=rect.bottom+4,left=rect.left;if(left+252>window.innerWidth)left=window.innerWidth-258;if(top+168>window.innerHeight)top=rect.top-172;picker.style.top=top+'px';picker.style.left=left+'px';document.getElementById('pick-back').style.display='block';}
+function pickR(btn){document.querySelectorAll('.pr').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');pR=btn.dataset.rank;}
+function pickS(btn){document.querySelectorAll('#card-picker .ps').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');pSu=btn.dataset.suit;}
+function clearCard(){delete cData[pG][pI];const pfx=pG==='my'?'mc':pG==='comm'?'cc':'oc';const s=document.getElementById(pfx+'-'+pI);if(s){s.innerHTML='<span class="cp">?</span>';s.className='card-slot';}closePicker();}
+function confirmCard(){if(!pR||!pSu){closePicker();return;}cData[pG][pI]={rank:pR,suit:pSu};const pfx=pG==='my'?'mc':pG==='comm'?'cc':'oc';const slot=document.getElementById(pfx+'-'+pI);const isRed=RED.includes(pSu);slot.className='card-slot filled '+(isRed?'red':'black');slot.innerHTML=`<span class="cr">${pR}</span><span class="cs">${pSu}</span>`;closePicker();}
+function closePicker(){document.getElementById('card-picker').style.display='none';document.getElementById('pick-back').style.display='none';}
+function closeM(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.overlay').forEach(el=>el.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');}));
+window.addEventListener('resize',()=>{const sp=document.getElementById('page-stats');if(sp&&sp.classList.contains('active'))renderStatsCharts();});
+load();
+</script>
+</body>
+</html>
