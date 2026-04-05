@@ -468,7 +468,7 @@ td.hi{color:var(--text);}
       <div class="slbl">今天的心情</div>
       <div class="mood-icons" id="mood-icons"><button class="mib" data-mood="great" onclick="selM(this)">😊<span>狀態佳</span></button><button class="mib" data-mood="ok" onclick="selM(this)">😐<span>普通</span></button><button class="mib" data-mood="tired" onclick="selM(this)">😴<span>疲倦</span></button><button class="mib" data-mood="tilt" onclick="selM(this)">😤<span>傾斜</span></button><button class="mib" data-mood="bad" onclick="selM(this)">😞<span>低落</span></button></div>
       <div class="fg s"><div class="field"><label>標題（可選）</label><input type="text" id="mf-title" placeholder="這次日誌的主題..."></div></div>
-      <div class="fg s"><div class="field"><label>內容（可直接貼上 AI 對話）</label><textarea id="mf-content" style="min-height:130px;" placeholder="記錄心情、貼上複盤對話、任何想記錄的事..."></textarea></div></div>
+      <div class="fg s"><div class="field"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;"><label style="margin-bottom:0;">內容（可直接貼上 AI 對話）</label><button type="button" onclick="autoFormatContent()" style="padding:3px 10px;background:var(--bg4);border:1px solid var(--border2);border-radius:6px;color:var(--gold);font-size:11px;font-family:Outfit,sans-serif;cursor:pointer;">✨ 自動整理段落</button></div><textarea id="mf-content" style="min-height:130px;" placeholder="記錄心情、貼上複盤對話、任何想記錄的事..."></textarea></div></div>
     </div>
     <div class="mfoot"><button class="btn-cancel" onclick="closeM('moodm')">取消</button><button class="btn-ok" onclick="saveMood()">儲存</button></div>
   </div>
@@ -635,6 +635,22 @@ function showMoodArticle(key,idx){
   const items=moods.filter(m=>m.date.slice(0,7)===key).sort((a,b)=>b.date.localeCompare(a.date));
   moodArticleList=items;moodArticleIdx=idx;moodOpenMonth=key;moodOpenYear=key.slice(0,4);
   renderMoodTL();renderSingleMood(idx);
+}
+function autoFormatContent(){
+  const ta=document.getElementById('mf-content');
+  if(!ta.value.trim())return;
+  ta.value=smartBreak(ta.value);
+}
+function smartBreak(text){
+  var t=text;
+  var nl=(t.match(/\n/g)||[]).length;
+  if(nl>10)return t;
+  t=t.replace(/[-─]{6,}/g,"\n---\n");
+  t=t.replace(/([。！？])(?=[^」』）\n])/g,"$1\n");
+  t=t.replace(/([^\n])(\d+[\.、]\s{0,3}[\u4e00-\u9fff])/g,"$1\n\n$2");
+  t=t.replace(/([^\n])(\* )/g,"$1\n$2");
+  t=t.replace(/\n{3,}/g,"\n\n");
+  return t.trim();
 }
 function formatMoodContent(text){
   if(!text)return'';
