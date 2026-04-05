@@ -186,7 +186,7 @@ td.hi{color:var(--text);}
 .lib-item-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:7px;gap:10px;}
 .lib-item-title{font-size:14px;font-weight:500;color:var(--text);}
 .lib-item-cat{font-size:10px;padding:2px 8px;border-radius:20px;background:var(--gold-dim);color:var(--gold);border:1px solid rgba(201,168,76,.2);white-space:nowrap;}
-.lib-item-body{font-size:13px;color:var(--text2);line-height:1.7;}
+.lib-item-body{font-size:13px;color:var(--text2);line-height:1.8;white-space:pre-wrap;word-break:break-word;}
 .lib-item-link{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--blue);margin-top:7px;text-decoration:none;opacity:.8;}
 .lib-item-link:hover{opacity:1;}
 .lib-item-foot{display:flex;justify-content:space-between;align-items:center;margin-top:6px;}
@@ -481,7 +481,7 @@ td.hi{color:var(--text);}
     <div class="mbody">
       <div class="fg"><div class="field"><label>標題</label><input type="text" id="lf-title" placeholder="文章標題 / 語錄..."></div><div class="field"><label>分類</label><select id="lf-cat"></select></div></div>
       <div class="fg s"><div class="field"><label>網址（可選）</label><input type="url" id="lf-url" placeholder="https://..."></div></div>
-      <div class="fg s"><div class="field"><label>內容 / 摘要</label><textarea id="lf-content" style="min-height:110px;" placeholder="貼上文章重點、語錄、書摘..."></textarea></div></div>
+      <div class="fg s"><div class="field"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;"><label style="margin-bottom:0;">內容 / 摘要</label><button type="button" onclick="autoFormatLib()" style="padding:3px 10px;background:var(--bg4);border:1px solid var(--border2);border-radius:6px;color:var(--gold);font-size:11px;font-family:Outfit,sans-serif;cursor:pointer;">✨ 自動整理段落</button></div><textarea id="lf-content" style="min-height:110px;" placeholder="貼上文章重點、語錄、書摘..."></textarea></div></div>
     </div>
     <div class="mfoot"><button class="btn-cancel" onclick="closeM('libm')">取消</button><button class="btn-ok" onclick="saveLib()">儲存</button></div>
   </div>
@@ -641,6 +641,11 @@ function autoFormatContent(){
   if(!ta.value.trim())return;
   ta.value=smartBreak(ta.value);
 }
+function autoFormatLib(){
+  const ta=document.getElementById('lf-content');
+  if(!ta.value.trim())return;
+  ta.value=smartBreak(ta.value);
+}
 function smartBreak(text){
   var t=text;
   var nl=(t.match(/\n/g)||[]).length;
@@ -705,7 +710,7 @@ async function saveLib(){const item={id:Date.now(),title:document.getElementById
 function renderLibCats(){const sb=document.getElementById('lib-cats-sidebar');let html=`<button class="lib-cat-btn${libCatF==='all'?' active':''}" onclick="filterLib('all')">全部 (${libs.length})</button>`;libCats.forEach(c=>{const cnt=libs.filter(x=>x.cat===c).length;html+=`<button class="lib-cat-btn${libCatF===c?' active':''}" onclick="filterLib('${c}')">${c} (${cnt})</button>`;});html+=`<button class="lib-cat-add" onclick="addLibCat()">+ 新增分類</button>`;sb.innerHTML=html;renderLibItems(libCatF);}
 function filterLib(cat){libCatF=cat;renderLibCats();}
 async function addLibCat(){const name=prompt('新分類名稱：');if(name&&name.trim()&&!libCats.includes(name.trim())){await sbUpsert('lib_cats',{name:name.trim()});libCats.push(name.trim());renderLibCats();}}
-function renderLibItems(cat){const items=cat==='all'?libs:libs.filter(x=>x.cat===cat);const area=document.getElementById('lib-items-area');if(!items.length){area.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:48px 0;">此分類尚無資料</div>';return;}area.innerHTML=items.map(item=>`<div class="lib-item"><div class="lib-item-header"><div class="lib-item-title">${item.title||'無標題'}</div><span class="lib-item-cat">${item.cat}</span></div><div class="lib-item-body">${item.content||''}</div>${item.url?`<a class="lib-item-link" href="${item.url}" target="_blank">🔗 開啟連結</a>`:''}<div class="lib-item-foot"><div class="lib-item-date">${item.date}</div><button class="act-btn" onclick="delLib('${item.id}')">✕</button></div></div>`).join('');}
+function renderLibItems(cat){const items=cat==='all'?libs:libs.filter(x=>x.cat===cat);const area=document.getElementById('lib-items-area');if(!items.length){area.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:48px 0;">此分類尚無資料</div>';return;}area.innerHTML=items.map(item=>`<div class="lib-item"><div class="lib-item-header"><div class="lib-item-title">${item.title||'無標題'}</div><span class="lib-item-cat">${item.cat}</span></div><div class="lib-item-body">${formatMoodContent(item.content||'')||''}</div>${item.url?`<a class="lib-item-link" href="${item.url}" target="_blank">🔗 開啟連結</a>`:''}<div class="lib-item-foot"><div class="lib-item-date">${item.date}</div><button class="act-btn" onclick="delLib('${item.id}')">✕</button></div></div>`).join('');}
 async function delLib(id){if(!confirm('確定刪除？'))return;await sbDel('libs',id);libs=libs.filter(x=>x.id!=id);renderLibCats();}
 function openGoalM(){const g=goals[mk()]||{};document.getElementById('gf-pnl').value=g.pnl||'';document.getElementById('gf-ses').value=g.sessions||'';document.getElementById('goalm').classList.add('open');}
 async function saveGoal(){const key=mk();const g={id:key,pnl:parseFloat(document.getElementById('gf-pnl').value)||0,sessions:parseInt(document.getElementById('gf-ses').value)||0};await sbUpsert('goals',g);goals[key]={pnl:g.pnl,sessions:g.sessions};closeM('goalm');renderGoals();}
