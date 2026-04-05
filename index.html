@@ -638,19 +638,33 @@ function showMoodArticle(key,idx){
 }
 function formatMoodContent(text){
   if(!text)return'';
-  // Convert markdown-like headers and separators to styled HTML
-  return text
-    .split('\n')
-    .map(line=>{
-      // Section headers: lines starting with numbers like "1." or all-caps or "---"
-      if(/^-{4,}$/.test(line.trim()))return'<hr style="border:none;border-top:1px solid var(--border);margin:14px 0;">';
-      if(/^#{1,3}\s/.test(line))return`<div style="font-size:14px;font-weight:600;color:var(--text);margin:14px 0 6px;">${line.replace(/^#{1,3}\s/,'')}</div>`;
-      if(/^\d+\.\s.{10,}/.test(line)&&line.length<80)return`<div style="font-size:14px;font-weight:600;color:var(--gold);margin:14px 0 5px;">${line}</div>`;
-      if(/^\*\s/.test(line))return`<div style="padding-left:14px;margin:3px 0;">· ${line.slice(2)}</div>`;
-      if(line.trim()==='')return'<div style="height:8px;"></div>';
-      return`<div style="margin:2px 0;">${line}</div>`;
-    })
-    .join('');
+  // Step 1: normalize separators to newlines
+  let t=text
+    .replace(/[-─]{4,}/g,'\n---\n')
+    .replace(/\r\n/g,'\n');
+  // Step 2: if text has very few newlines, auto-insert them at natural break points
+  const nlCount=(t.match(/\n/g)||[]).length;
+  if(nlCount<5){
+    t=t
+      // break before numbered sections like "1." "2." etc
+      .replace(/(?<=[。！？\.\s])\s*([1-9][\.、]\s*[^0-9])/g,'\n\n$1')
+      // break after 。！？followed by text (not already newline)
+      .replace(/([。！？])(?!\n)(?=[^」』）])/g,'$1\n')
+      // break before * bullet points
+      .replace(/(?<=\S)\s*(\*\s)/g,'\n$1')
+      // break before ──── separators
+      .replace(/──+/g,'\n---\n');
+  }
+  // Step 3: render line by line
+  return t.split('\n').map(line=>{
+    const tr=line.trim();
+    if(!tr)return'<div style="height:10px;"></div>';
+    if(tr==='---')return'<hr style="border:none;border-top:1px solid var(--border);margin:16px 0;">';
+    if(/^#{1,3} /.test(tr))return`<div style="font-size:14px;font-weight:600;color:var(--text);margin:14px 0 5px;">${tr.replace(/^#{1,3} /,'')}</div>`;
+    if(/^[1-9][\.、]\s.{4,}/.test(tr)&&tr.length<100)return`<div style="font-size:14px;font-weight:600;color:var(--gold);margin:16px 0 5px;">${tr}</div>`;
+    if(/^\*\s/.test(tr))return`<div style="padding-left:16px;margin:4px 0;color:var(--text2);">· ${tr.slice(2)}</div>`;
+    return`<div style="margin:3px 0;line-height:1.85;">${tr}</div>`;
+  }).join('');
 }
 function renderSingleMood(idx){
   const m=moodArticleList[idx];if(!m)return;
