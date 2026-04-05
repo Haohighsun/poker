@@ -167,7 +167,7 @@ td.hi{color:var(--text);}
 .entry-badge{font-size:10px;padding:2px 8px;border-radius:20px;border:1px solid var(--border);color:var(--text2);}
 .entry-badge.mood{color:var(--purple);border-color:rgba(155,111,212,.3);background:rgba(155,111,212,.1);}
 .entry-badge.ai{color:var(--blue);border-color:rgba(59,158,218,.3);background:rgba(59,158,218,.1);}
-.entry-text{font-size:13px;color:var(--text2);line-height:1.75;white-space:pre-wrap;}
+.entry-text{font-size:13.5px;color:var(--text2);line-height:1.85;white-space:pre-wrap;word-break:break-word;max-width:72ch;}
 .mood-icons{display:flex;gap:7px;margin-bottom:12px;}
 .mib{flex:1;padding:7px 3px;border:1px solid var(--border);border-radius:var(--r);background:var(--bg3);font-size:17px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;transition:all .15s;}
 .mib span{font-size:9px;color:var(--text3);font-family:'Outfit',sans-serif;}
@@ -635,6 +635,22 @@ function showMoodArticle(key,idx){
   const items=moods.filter(m=>m.date.slice(0,7)===key).sort((a,b)=>b.date.localeCompare(a.date));
   moodArticleList=items;moodArticleIdx=idx;moodOpenMonth=key;moodOpenYear=key.slice(0,4);
   renderMoodTL();renderSingleMood(idx);
+}
+function formatMoodContent(text){
+  if(!text)return'';
+  // Convert markdown-like headers and separators to styled HTML
+  return text
+    .split('\n')
+    .map(line=>{
+      // Section headers: lines starting with numbers like "1." or all-caps or "---"
+      if(/^-{4,}$/.test(line.trim()))return'<hr style="border:none;border-top:1px solid var(--border);margin:14px 0;">';
+      if(/^#{1,3}\s/.test(line))return`<div style="font-size:14px;font-weight:600;color:var(--text);margin:14px 0 6px;">${line.replace(/^#{1,3}\s/,'')}</div>`;
+      if(/^\d+\.\s.{10,}/.test(line)&&line.length<80)return`<div style="font-size:14px;font-weight:600;color:var(--gold);margin:14px 0 5px;">${line}</div>`;
+      if(/^\*\s/.test(line))return`<div style="padding-left:14px;margin:3px 0;">· ${line.slice(2)}</div>`;
+      if(line.trim()==='')return'<div style="height:8px;"></div>';
+      return`<div style="margin:2px 0;">${line}</div>`;
+    })
+    .join('');
 }
 function renderSingleMood(idx){
   const m=moodArticleList[idx];if(!m)return;
