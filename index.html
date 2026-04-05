@@ -8,7 +8,7 @@
 <style>
 :root{--bg:#0d0d0d;--bg2:#141414;--bg3:#1c1c1c;--bg4:#242424;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.14);--gold:#c9a84c;--gold2:#e8c97a;--gold-dim:rgba(201,168,76,0.13);--green:#2ecc71;--red:#e74c3c;--blue:#3b9eda;--purple:#9b6fd4;--text:#f0ece4;--text2:#a09880;--text3:#5a5448;--r:10px;--rl:16px;}
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;font-weight:300;min-height:100vh;overflow-x:hidden;font-size:15px;}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;font-weight:300;min-height:100vh;overflow-x:hidden;font-size:15px;-webkit-text-size-adjust:100%;text-size-adjust:100%;}
 .app{display:flex;min-height:100vh;}
 .sidebar{width:220px;min-height:100vh;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;}
 .logo{padding:28px 20px 22px;border-bottom:1px solid var(--border);}
@@ -174,7 +174,27 @@ td.hi{color:var(--text);}
 .mib.sel{border-color:var(--border2);background:var(--bg4);}
 /* LIBRARY */
 .lib-layout{display:grid;grid-template-columns:170px 1fr;gap:18px;}
-.lib-cats{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:12px;height:fit-content;}
+.lib-cats{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:12px;overflow-y:auto;max-height:calc(100vh - 160px);}
+.lib-tree-cat{display:flex;align-items:center;justify-content:space-between;padding:7px 4px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text2);border-radius:7px;transition:all .15s;}
+.lib-tree-cat:hover{color:var(--text);background:var(--bg3);}
+.lib-tree-cat.open{color:var(--gold);}
+.lib-tree-arrow{font-size:10px;transition:transform .2s;color:var(--text3);}
+.lib-tree-cat.open .lib-tree-arrow{transform:rotate(90deg);color:var(--gold);}
+.lib-tree-subs{overflow:hidden;max-height:0;transition:max-height .25s ease;}
+.lib-tree-subs.open{max-height:500px;}
+.lib-tree-sub{padding:5px 10px 5px 14px;border-radius:7px;font-size:13px;color:var(--text2);cursor:pointer;transition:all .15s;display:flex;justify-content:space-between;align-items:center;}
+.lib-tree-sub:hover{background:var(--bg3);color:var(--text);}
+.lib-tree-sub.active{background:var(--gold-dim);color:var(--gold2);}
+.lib-tree-articles{overflow:hidden;max-height:0;transition:max-height .3s ease;}
+.lib-tree-articles.open{max-height:600px;}
+.lib-tree-article{padding:4px 10px 4px 26px;font-size:12px;color:var(--text3);cursor:pointer;border-radius:5px;transition:all .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lib-tree-article:hover{background:var(--bg3);color:var(--text2);}
+.lib-tree-article.active{color:var(--gold);background:rgba(201,168,76,.07);}
+.lib-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.lib-nav-btn{display:flex;align-items:center;gap:6px;padding:7px 14px;border:1px solid var(--border);border-radius:var(--r);background:none;color:var(--text2);font-family:'Outfit',sans-serif;font-size:12px;cursor:pointer;transition:all .15s;}
+.lib-nav-btn:hover:not(:disabled){border-color:var(--gold);color:var(--gold);background:var(--gold-dim);}
+.lib-nav-btn:disabled{opacity:.3;cursor:default;}
+.lib-nav-info{font-size:12px;color:var(--text3);}
 .lib-cat-btn{display:block;width:100%;padding:7px 11px;border:none;background:none;color:var(--text2);font-family:'Outfit',sans-serif;font-size:13px;text-align:left;border-radius:7px;cursor:pointer;transition:all .15s;margin-bottom:2px;}
 .lib-cat-btn:hover{background:var(--bg3);color:var(--text);}
 .lib-cat-btn.active{background:var(--gold-dim);color:var(--gold2);}
@@ -252,6 +272,12 @@ td.hi{color:var(--text);}
   .home-grid{grid-template-columns:1fr;}
   .goals-layout{grid-template-columns:1fr;}
   .home-quick{flex-direction:column;align-items:flex-start;}
+  html{-webkit-text-size-adjust:none;text-size-adjust:none;}
+  .nb{font-size:12px !important;}
+  tbody td,.entry-text,.lib-item-body,.goal-key,.goal-val,.ts-month,.ts-article{font-size:16px !important;}
+  .sc-val{font-size:22px !important;}
+  .page-title{font-size:22px !important;}
+  .field input,.field select,.field textarea{font-size:16px !important;}
 }
 </style>
 </head>
@@ -391,7 +417,14 @@ td.hi{color:var(--text);}
   <div class="content">
     <div class="lib-layout">
       <div class="lib-cats" id="lib-cats-sidebar"></div>
-      <div class="lib-items" id="lib-items-area"><div style="color:var(--text3);font-size:13px;text-align:center;padding:48px 0;">選擇左側分類</div></div>
+      <div style="display:flex;flex-direction:column;min-width:0;">
+        <div class="lib-nav" id="lib-nav" style="display:none;">
+          <button class="lib-nav-btn" id="lib-prev" onclick="navLib(-1)">← 上一篇</button>
+          <span class="lib-nav-info" id="lib-nav-info"></span>
+          <button class="lib-nav-btn" id="lib-next" onclick="navLib(1)">下一篇 →</button>
+        </div>
+        <div class="lib-items" id="lib-items-area"><div style="color:var(--text3);font-size:13px;text-align:center;padding:48px 0;">選擇左側分類</div></div>
+      </div>
     </div>
   </div>
 </div>
@@ -491,7 +524,8 @@ td.hi{color:var(--text);}
   <div class="modal">
     <div class="mhead"><div class="mhead-title">新增資料</div><button class="mc" onclick="closeM('libm')">✕</button></div>
     <div class="mbody">
-      <div class="fg"><div class="field"><label>標題</label><input type="text" id="lf-title" placeholder="文章標題 / 語錄..."></div><div class="field"><label>分類</label><select id="lf-cat"></select></div></div>
+      <div class="fg"><div class="field"><label>標題</label><input type="text" id="lf-title" placeholder="文章標題 / 語錄..."></div><div class="field"><label>主分類</label><select id="lf-cat"></select></div></div>
+      <div class="fg s"><div class="field"><label>小分類（可選，例如：第一章、基礎概念）</label><input type="text" id="lf-subcat" placeholder="自由輸入小分類名稱..."></div></div>
       <div class="fg s"><div class="field"><label>網址（可選）</label><input type="url" id="lf-url" placeholder="https://..."></div></div>
       <div class="fg s"><div class="field"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;"><label style="margin-bottom:0;">內容 / 摘要</label><button type="button" onclick="autoFormatLib()" style="padding:3px 10px;background:var(--bg4);border:1px solid var(--border2);border-radius:6px;color:var(--gold);font-size:11px;font-family:Outfit,sans-serif;cursor:pointer;">✨ 自動整理段落</button></div><textarea id="lf-content" style="min-height:110px;" placeholder="貼上文章重點、語錄、書摘..."></textarea></div></div>
     </div>
@@ -717,13 +751,106 @@ function navMood(dir){
 function filterMoodM(key){moodOpenMonth=key;moodOpenYear=key.slice(0,4);toggleMonth(key);}
 function renderMoodContent(key){toggleMonth(key);}
 async function delMood(id){if(!confirm('確定刪除？'))return;await sbDel('moods',id);moods=moods.filter(m=>m.id!=id);moodArticleList=moodArticleList.filter(m=>m.id!=id);if(moodArticleIdx>=moodArticleList.length)moodArticleIdx=Math.max(0,moodArticleList.length-1);renderMoodTL();if(moodArticleList.length)renderSingleMood(moodArticleIdx);else{document.getElementById('mood-area').innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:48px 0;">此月份尚無紀錄</div>';document.getElementById('mood-nav').style.display='none';}}
-function openLibM(){const sel=document.getElementById('lf-cat');sel.innerHTML=libCats.map(c=>`<option>${c}</option>`).join('');document.getElementById('lf-title').value='';document.getElementById('lf-url').value='';document.getElementById('lf-content').value='';document.getElementById('libm').classList.add('open');}
-async function saveLib(){const item={id:Date.now(),title:document.getElementById('lf-title').value,cat:document.getElementById('lf-cat').value,url:document.getElementById('lf-url').value,content:document.getElementById('lf-content').value,date:today()};await sbUpsert('libs',item);libs.unshift(item);closeM('libm');renderLibCats();renderLibItems(libCatF);}
-function renderLibCats(){const sb=document.getElementById('lib-cats-sidebar');let html=`<button class="lib-cat-btn${libCatF==='all'?' active':''}" onclick="filterLib('all')">全部 (${libs.length})</button>`;libCats.forEach(c=>{const cnt=libs.filter(x=>x.cat===c).length;html+=`<button class="lib-cat-btn${libCatF===c?' active':''}" onclick="filterLib('${c}')">${c} (${cnt})</button>`;});html+=`<button class="lib-cat-add" onclick="addLibCat()">+ 新增分類</button>`;sb.innerHTML=html;renderLibItems(libCatF);}
-function filterLib(cat){libCatF=cat;renderLibCats();}
-async function addLibCat(){const name=prompt('新分類名稱：');if(name&&name.trim()&&!libCats.includes(name.trim())){await sbUpsert('lib_cats',{name:name.trim()});libCats.push(name.trim());renderLibCats();}}
-function renderLibItems(cat){const items=cat==='all'?libs:libs.filter(x=>x.cat===cat);const area=document.getElementById('lib-items-area');if(!items.length){area.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:48px 0;">此分類尚無資料</div>';return;}area.innerHTML=items.map(item=>`<div class="lib-item"><div class="lib-item-header"><div class="lib-item-title">${item.title||'無標題'}</div><span class="lib-item-cat">${item.cat}</span></div><div class="lib-item-body">${formatMoodContent(item.content||'')||''}</div>${item.url?`<a class="lib-item-link" href="${item.url}" target="_blank">🔗 開啟連結</a>`:''}<div class="lib-item-foot"><div class="lib-item-date">${item.date}</div><button class="act-btn" onclick="delLib('${item.id}')">✕</button></div></div>`).join('');}
-async function delLib(id){if(!confirm('確定刪除？'))return;await sbDel('libs',id);libs=libs.filter(x=>x.id!=id);renderLibCats();}
+let libOpenCat=null,libOpenSub=null,libArticleList=[],libArticleIdx=0;
+function openLibM(){
+  const sel=document.getElementById('lf-cat');
+  sel.innerHTML=libCats.map(c=>`<option>${c}</option>`).join('');
+  document.getElementById('lf-title').value='';
+  document.getElementById('lf-subcat').value='';
+  document.getElementById('lf-url').value='';
+  document.getElementById('lf-content').value='';
+  document.getElementById('libm').classList.add('open');
+}
+async function saveLib(){
+  const item={id:Date.now(),title:document.getElementById('lf-title').value,cat:document.getElementById('lf-cat').value,subcat:document.getElementById('lf-subcat').value.trim(),url:document.getElementById('lf-url').value,content:document.getElementById('lf-content').value,date:today()};
+  await sbUpsert('libs',item);libs.unshift(item);closeM('libm');
+  libOpenCat=item.cat;libOpenSub=item.subcat||'__none__';
+  const list=getLibList(item.cat,item.subcat||'__none__');
+  libArticleList=list;libArticleIdx=0;
+  renderLibCats();renderSingleLib(0);
+}
+function getLibList(cat,sub){
+  return libs.filter(x=>x.cat===cat&&(sub==='__none__'?(x.subcat||'')==='':x.subcat===sub)).sort((a,b)=>b.id-a.id);
+}
+function renderLibCats(){
+  const sb=document.getElementById('lib-cats-sidebar');
+  // Group by cat then subcat
+  const byC={};
+  libs.forEach(x=>{
+    if(!byC[x.cat])byC[x.cat]={};
+    const s=x.subcat||'';
+    if(!byC[x.cat][s])byC[x.cat][s]=[];
+    byC[x.cat][s].push(x);
+  });
+  let html='';
+  libCats.forEach(cat=>{
+    const subs=byC[cat]||{};
+    const total=Object.values(subs).flat().length;
+    const isOpen=libOpenCat===cat;
+    html+=`<div class="lib-tree-cat${isOpen?' open':''}" onclick="toggleLibCat('${cat}')"><span>▶ ${cat} (${total})</span><span class="lib-tree-arrow">›</span></div>`;
+    html+=`<div class="lib-tree-subs${isOpen?' open':''}" id="ltc-${cat.replace(/\s/g,'_')}">`;
+    // Items with no subcat directly
+    const nosub=(subs['']||[]);
+    if(nosub.length){
+      const isSubOpen=libOpenCat===cat&&libOpenSub==='__none__';
+      html+=`<div class="lib-tree-sub${isSubOpen?' active':''}" onclick="toggleLibSub('${cat}','__none__')">（未分類）<span class="ts-count">${nosub.length}</span></div>`;
+      html+=`<div class="lib-tree-articles${isSubOpen?' open':''}" id="lts-${cat.replace(/\s/g,'_')}___none__">`;
+      nosub.sort((a,b)=>b.id-a.id).forEach((item,idx)=>{
+        const isA=libArticleList[libArticleIdx]&&libArticleList[libArticleIdx].id===item.id;
+        html+=`<div class="lib-tree-article${isA?' active':''}" onclick="showLibArticle('${cat}','__none__',${idx})" title="${item.title||'無標題'}">${item.title||'無標題'}</div>`;
+      });
+      html+='</div>';
+    }
+    // Items with subcat
+    Object.keys(subs).filter(s=>s!=='').sort().forEach(sub=>{
+      const items=subs[sub];
+      const isSubOpen=libOpenCat===cat&&libOpenSub===sub;
+      html+=`<div class="lib-tree-sub${isSubOpen?' active':''}" onclick="toggleLibSub('${cat}','${sub}')">  ${sub}<span class="ts-count">${items.length}</span></div>`;
+      html+=`<div class="lib-tree-articles${isSubOpen?' open':''}" id="lts-${cat.replace(/\s/g,'_')}_${sub.replace(/\s/g,'_')}">`;
+      items.sort((a,b)=>b.id-a.id).forEach((item,idx)=>{
+        const isA=libArticleList[libArticleIdx]&&libArticleList[libArticleIdx].id===item.id;
+        html+=`<div class="lib-tree-article${isA?' active':''}" onclick="showLibArticle('${cat}','${sub}',${idx})" title="${item.title||'無標題'}">${item.title||'無標題'}</div>`;
+      });
+      html+='</div>';
+    });
+    html+='</div>';
+  });
+  html+=`<button class="lib-cat-add" onclick="addLibCat()">+ 新增主分類</button>`;
+  sb.innerHTML=html;
+}
+function toggleLibCat(cat){libOpenCat=libOpenCat===cat?null:cat;if(libOpenCat!==cat)libOpenSub=null;renderLibCats();}
+function toggleLibSub(cat,sub){
+  libOpenCat=cat;
+  if(libOpenSub===sub){libOpenSub=null;renderLibCats();return;}
+  libOpenSub=sub;
+  const list=getLibList(cat,sub);
+  libArticleList=list;libArticleIdx=0;
+  renderLibCats();
+  if(list.length)renderSingleLib(0);
+  else{document.getElementById('lib-items-area').innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:48px 0;">此分類尚無資料</div>';document.getElementById('lib-nav').style.display='none';}
+}
+function showLibArticle(cat,sub,idx){
+  const list=getLibList(cat,sub);
+  libArticleList=list;libArticleIdx=idx;libOpenCat=cat;libOpenSub=sub;
+  renderLibCats();renderSingleLib(idx);
+}
+function renderSingleLib(idx){
+  const item=libArticleList[idx];if(!item)return;
+  const area=document.getElementById('lib-items-area');
+  area.innerHTML=`<div class="lib-item"><div class="lib-item-header"><div class="lib-item-title">${item.title||'無標題'}</div><span class="lib-item-cat">${item.cat}${item.subcat?' › '+item.subcat:''}</span></div><div class="lib-item-body">${formatMoodContent(item.content||'')||''}</div>${item.url?`<a class="lib-item-link" href="${item.url}" target="_blank">🔗 開啟連結</a>`:''}<div class="lib-item-foot"><div class="lib-item-date">${item.date}</div><button class="act-btn" onclick="delLib('${item.id}')">✕</button></div></div>`;
+  const nav=document.getElementById('lib-nav');nav.style.display='flex';
+  document.getElementById('lib-prev').disabled=idx>=libArticleList.length-1;
+  document.getElementById('lib-next').disabled=idx<=0;
+  document.getElementById('lib-nav-info').textContent=(idx+1)+' / '+libArticleList.length;
+}
+function navLib(dir){
+  const newIdx=libArticleIdx-dir;
+  if(newIdx<0||newIdx>=libArticleList.length)return;
+  libArticleIdx=newIdx;renderLibCats();renderSingleLib(newIdx);
+}
+function filterLib(cat){libOpenCat=cat;libOpenSub=null;renderLibCats();}
+async function addLibCat(){const name=prompt('新主分類名稱：');if(name&&name.trim()&&!libCats.includes(name.trim())){await sbUpsert('lib_cats',{name:name.trim()});libCats.push(name.trim());renderLibCats();}}
+async function delLib(id){if(!confirm('確定刪除？'))return;await sbDel('libs',id);libs=libs.filter(x=>x.id!=id);libArticleList=libArticleList.filter(x=>x.id!=id);if(libArticleIdx>=libArticleList.length)libArticleIdx=Math.max(0,libArticleList.length-1);renderLibCats();if(libArticleList.length)renderSingleLib(libArticleIdx);else{document.getElementById('lib-items-area').innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:48px 0;">此分類尚無資料</div>';document.getElementById('lib-nav').style.display='none';}}
 function openGoalM(){const g=goals[mk()]||{};document.getElementById('gf-pnl').value=g.pnl||'';document.getElementById('gf-ses').value=g.sessions||'';document.getElementById('goalm').classList.add('open');}
 async function saveGoal(){const key=mk();const g={id:key,pnl:parseFloat(document.getElementById('gf-pnl').value)||0,sessions:parseInt(document.getElementById('gf-ses').value)||0};await sbUpsert('goals',g);goals[key]={pnl:g.pnl,sessions:g.sessions};closeM('goalm');renderGoals();}
 function renderGoals(){const g=goals[mk()]||{};const mS=sessions.filter(s=>s.date&&s.date.slice(0,7)===mk());const mP=mS.reduce((s,x)=>s+x.pnl,0);const don=donations.reduce((s,x)=>s+(parseFloat(x.amount)||0),0);document.getElementById('g-don-total').textContent='+$'+don.toFixed(0);document.getElementById('g-pt').textContent=g.pnl?'+$'+g.pnl:'未設定';const ap=document.getElementById('g-pa');ap.textContent=(mP>=0?'+':'')+fmt(mP).replace('+','');ap.style.color=mP>0?'var(--green)':mP<0?'var(--red)':'var(--text2)';document.getElementById('g-st').textContent=g.sessions?g.sessions+' 場':'未設定';document.getElementById('g-sa').textContent=mS.length+' 場';if(g.pnl&&g.pnl>0){const pct=Math.min(100,Math.max(0,mP/g.pnl*100));document.getElementById('g-pct').textContent=pct.toFixed(0)+'%';document.getElementById('g-prog').style.width=pct+'%';document.getElementById('g-prog').style.background=pct>=100?'var(--gold)':mP>=0?'var(--green)':'var(--red)';}else{document.getElementById('g-pct').textContent='—';document.getElementById('g-prog').style.width='0%';}renderDonations();}
